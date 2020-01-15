@@ -17,14 +17,14 @@ send_telegram_document <- function(document, chat_id, bot_token){
 }
 
 # send_telegram_message(text = "Your script is finished", 
-#                       chat_id = "441084295", 
-#                       bot_token = "880903665:AAE_f0i_bQRXBXJ4IR5TEuTt5C05vvaTJ5w")
+#                       chat_id = chat_id, 
+#                       bot_token = bot_token)
 
-# send_telegram_photo(photo = "Kitty.png", 
+# send_telegram_photo(photo = "Image.png", 
 #                     caption = "Look at this awesome kitty!", 
-#                     chat_id = "441084295", 
-#                     bot_token = "880903665:AAE_f0i_bQRXBXJ4IR5TEuTt5C05vvaTJ5w")
+#                     chat_id = chat_id, 
+#                     bot_token = bot_token)
 
-# send_telegram_document(document = "Hardlopen.xlsx",
-#                        chat_id = "441084295",
-#                        bot_token = "880903665:AAE_f0i_bQRXBXJ4IR5TEuTt5C05vvaTJ5w")
+# send_telegram_document(document = "Document.xlsx",
+#                        chat_id = chat_id,
+#                        bot_token = bot_token)
