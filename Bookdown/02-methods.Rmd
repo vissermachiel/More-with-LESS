@@ -1,0 +1,848 @@
+# Classification Methods {#methods}
+
+There are many different statistical methods available that can be used to predict whether an object should be classified into class `A` or class `B`, based on a set of predictor variables (also called features). One of the most straightforward methods to classify datapoints is to fit a linear regression. When the predicted response value is below or equal to a specified threshold value the object is assigned to class `A`. Objects for which the predicted values are above this threshold value are classified as class `B`. The first section of this chapter explains linear regression and how it can be used for classification. It also describes the use of regularisation to solve the problems that arise when the number of variables is larger than the number of samples. Another well-known classification method is logistic regression, which predicts the probability of assigning an object to class `B`. When this probability is higher than a certain threshold value, often set to 0.5, the object is assigned to class `B`, otherwise to class `A`. Logistic regression is explained in the second section of this chapter. A third method that has recently gained more popularity is the support vector machine. This machine learning method fits a separating hyperplane between labelled datapoints from the two classes. New objects are classified based on the side of the separating hyperplane they are located on. The third section discusses the theory behind this method. The fourth classification method considered in this thesis is called LESS, as proposed by @VeenmanTax:LESS. This classifier makes use of the distance of a datapoint towards the estimated variable means of both class `A` and class `B`. The object is assigned to the class yielding the shortest distance to its variable means. The details behind this method are described in the final section of this chapter.
+
+## Linear Regression {#linearregression}
+
+Given a dataset $\{ y_i, x_{i1}, \dots, x_{ip} \}_{i=1}^{n}$ of $n$ objects and $p$ variables, linear regression is a statistical method to model the linear relationship between the response variable (also called dependent variable), specified as $\boldsymbol y \in \mathbb{R}^n$, and $p$ explanatory variables (also called independent variables), specified as $\boldsymbol X \in \mathbb{R}^{n \times p}$. When there is only one explanatory variable the method is called simple linear regression. In the case of two or more explanatory variables it is often referred to as multiple linear regression, which is an intuitive extension of the former method. One of the applications of linear regression is to make predictions for the continuous response variable $Y$, based on a linear combination of explanatory variables $X_1, X_2, \ldots, X_p$ and corresponding model coefficients $\beta_1, \beta_2, \ldots, \beta_p$, and an intercept $\beta_0$. The intercept and model coefficients are estimated from the data. The linear regression model is defined as follows:
+
+$$\begin{align}
+    y_i & = \beta_0 \cdot x_{i0} + \beta_1 \cdot x_{i1} + \ldots + \beta_p \cdot x_{ip} + \varepsilon_i, & \text{with } x_{i0} = 1 \\
+    & = \sum_{j=0}^p x_{ij} \beta_j + \varepsilon_i & \\
+    & = \boldsymbol x_i^\mathsf{T} \boldsymbol \beta + \varepsilon_i, & \text{for } i = 1, 2, \dots, n
+\end{align}$$
+
+where $\varepsilon_i \stackrel{i.i.d.}{\sim} N(0, \sigma^2)$. The symbol $^\mathsf{T}$ indicates a transpose, so that $\boldsymbol x_i^\mathsf{T} \boldsymbol \beta$ is the inner product between column vectors $\boldsymbol x_i$ and $\boldsymbol \beta$. Often this model is written in matrix notation, where all $n$ equations are stacked together:
+
+$$\begin{align}
+    \boldsymbol y & = \boldsymbol X \boldsymbol \beta + \boldsymbol \varepsilon, \text{ where} (\#eq:lm) \\
+    \boldsymbol y & = \begin{bmatrix}
+        y_1 \\
+        y_2 \\
+        \vdots \\
+        y_n
+    \end{bmatrix}, \
+    \boldsymbol X = \begin{bmatrix}
+        \boldsymbol x_1^\mathsf{T} \\
+        \boldsymbol x_2^\mathsf{T} \\
+        \vdots \\
+        \boldsymbol x_n^\mathsf{T}
+    \end{bmatrix} 
+    = \begin{bmatrix}
+        1      & x_{11} & x_{12} & \cdots & x_{1p} \\ 
+        1      & x_{21} & x_{22} & \cdots & x_{2p} \\ 
+        \vdots & \vdots & \vdots & \ddots & \vdots \\ 
+        1      & x_{n1} & x_{n2} & \cdots & x_{np}
+    \end{bmatrix}, \
+    \boldsymbol \beta = \begin{bmatrix}
+        \beta_0 \\
+        \beta_1 \\
+        \beta_2 \\
+        \vdots \\
+        \beta_p
+    \end{bmatrix}, \
+    \boldsymbol \varepsilon = \begin{bmatrix}
+        \varepsilon_1 \\
+        \varepsilon_2 \\
+        \vdots \\
+        \varepsilon_n
+    \end{bmatrix}.
+\end{align}$$
+
+In this equation, $\boldsymbol y$ is a vector of length $n$ representing the response variable with observed values $y_i$ (for $i = 1, 2, \dots, n$). $\boldsymbol X$ is an $n$ by $p$ matrix representing the explanatory variables with observed values $x_{ij}$ for object $i \in \{ 1, 2, \dots, n \}$ and variable $j \in \{ 1, 2, \dots, p \}$. In order to include an intercept to the model, a constant, $\boldsymbol x_{i0} = 1$ for $i = 1, 2, \dots, n$, is added to the design matrix that corresponds with the intercept coefficient $\beta_0$. The $(p+1)$-dimensional parameter vector $\boldsymbol \beta$ contains the $p$ regression coefficients and an intercept. Regression coefficient $\beta_j$ (for $j = 1, 2, \dots, p$) indicates the change in response variable $Y$, for an increase of 1 unit of explanatory variable $X_j$, keeping all other explanatory variables constant (i.e.\ $\boldsymbol X \setminus X_j$). 
+The intercept is interpreted as the value for response variable $Y$ when $x_j = 0$ for all $j = 1, 2, \dots, p$. The last part of the model, $\boldsymbol \varepsilon$, is a vector of length $n$ and is called the error (or noise) term. This random variable captures the measurement error for each observation $i \in \{1, 2, \dots, n\}$ and is assumed to be independent and identically distributed (i.i.d.), following the normal distribution with $\text{mean} = 0$ and $\text{variance} = \sigma^2$. It represents all factors which influence the dependent variable $Y$, other than the measured independent variables $\boldsymbol X$. This error term compensates for the deviations from the linear relationship between variables $\boldsymbol X$ and $Y$. It can also be seen as the difference between observed ($\boldsymbol y$) and predicted ($\hat{\boldsymbol y} = \boldsymbol X \hat{\boldsymbol \beta}$) values.
+
+An example of a simple linear regression with one explanatory variable is shown in Figure \@ref(fig:linearregression), containing 6 observed datapoints: $\{y_i, x_i\}_{i=1}^{6}$. These datapoints indicate a linear relationship between explanatory variable $X$ and response variable $Y$. Many straight lines can be drawn through this data, so the goal of linear regression is to find the line that best fit this linear relationship. Intuitively, a way to measure how well the regression line fits the data is by looking at the vertical deviation of the datapoints from the regression line ($\hat{y}_i - y_i$). This deviation is called the residual distance. Since some deviations are positive and others are negative, the residual distances are squared. The best linear regression line is defined as the one that results in the smallest sum of the squared residual distances. This is also called the least squares regression line.
+
+```{r linearregression, echo=FALSE, out.width="50%", fig.cap="Simple linear regression between response variable $Y$ and explanatory variable $X$. The black points represent the observed data ($x$, $y$). The linear regression model is shown by the red line. Dashed blue lines indicate the residual distance between observed ($y$) and predicted ($\\hat{y}$) values."}
+knitr::include_graphics("Figures/2.1_LinearRegression/LinearRegression.png")
+```
+
+### Assumptions
+
+Linear regression models make a number of assumptions about the explanatory variables, response variables, and the relationship between them. The most important assumptions for fitting the standard linear regression are as follows:
+
+* **Level of measurement**. The first assumption for linear regression is that both the response variable $Y$ and the explanatory variables $\boldsymbol X$ are measured on a continuous scale with values taken from the set of real numbers $\mathbb{R}$.
+    
+* **Linearity**. The relationship between the explanatory variables and the response variable is assumed to be linear in the parameters. This means that the mean of response variable $Y$ is a linear combination of the regression coefficients $\boldsymbol \beta$ (model parameters) and the explanatory variables $\boldsymbol X$. It is possible to extend the linear regression into a polynomial regression by adding transformed predictor variables to the model (i.e.\ $X_j^2$). Other extensions are also possible, like the Fourier transformation. Even though a polynomial regression does not fit a straight line, it is still considered a linear model, since the model parameters are linear combinations of the extended explanatory variables.
+    
+* **$\varepsilon \stackrel{i.i.d.}{\sim} N(0, \sigma^2)$**. An important assumption is that the error term $\boldsymbol \varepsilon$ is an independent and identically distributed (i.i.d.) random variable that follows a normal distribution with $\text{mean} = 0$ and $\text{variance} = \sigma^2$. This assumption is broken down into three parts:
+
+  + **Independence of errors**. From the previous assumption it follows that the error values, the difference between observed ($\boldsymbol y$) and predicted ($\hat{\boldsymbol y} = \boldsymbol X \hat{\boldsymbol \beta}$) values, are not correlated with each other. The observations are independent from each other.
+        
+  + **Exogeneity**. This assumption states that dependence between the independent variables $\boldsymbol X$ and the dependent variable $Y$ is one-directional. As the variable names indicate, the dependent variable $Y$ is dependent on the independent variables $\boldsymbol X$ and the error term $\varepsilon$, but not the other way around. Hence, the formulation of the regression model (Equation \@ref(eq:lm)). Moreover, all explanatory variables $\boldsymbol X$ are assumed to be fixed factors and measured without error. This means that the errors in the regression model should have conditional mean zero: $\mathbb{E} \big[ \boldsymbol \varepsilon \mid \boldsymbol X \big] = 0$.
+        
+  + **Homoscedasticity**. The error terms (the deviation of the observed datapoints from the regression line) are assumed to have the same variance, regardless of the values of the predictor variables. This means that the datapoints are equally scattered around the regression line for all points of $X$. When the errors are not evenly distributed (e.g. increase) across the regression line, they are said to be heteroscedastic. Systematic heteroscedasticity can often be resolved by transforming the data.
+
+* **No perfect multicollinearity**. Perfect multicollinearity means that two or more predictor variables are perfectly correlated. This can happen when one variable is a copy or a linear transformation of another variable, or when one or more of the the independent variables are a linear combination of the other variables. It also occurs when there are fewer observations than explanatory variables ($n < k$), which is by definition the case for high-dimensional data. When there is perfect multicollinearity, the parameter vector $\boldsymbol \beta$ will be non-identifiable, meaning that it has no unique solution. For standard least squares estimation methods, described in the next section, the design matrix $\boldsymbol X$ must have full column rank $p$.
+
+### Ordinary least squares optimisation
+
+The model coefficients $\boldsymbol \beta = \begin{bmatrix} \beta_0 & \beta_1 & \dots & \beta_p \end{bmatrix}^\mathsf{T}$ are estimated from the data. The standard estimation method is called _ordinary least squares_ (OLS), which sets the coefficients $\hat{\boldsymbol \beta}$ such that the sum of the squared residuals, also called Residual Sum of Squares (RSS), is minimised:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta} & = \underset{\boldsymbol \beta}{\operatorname{arg min}} \text{RSS}(\boldsymbol \beta), \\
+    \text{where RSS}(\boldsymbol \beta) & = \sum_{i=1}^n ( y_i - \hat{y}_i )^2 (\#eq:rss) \\
+    & = \sum_{i=1}^n ( y_i - \sum_{j=0}^p x_{ij} \beta_j)^2 \\
+    & = (\boldsymbol y - \boldsymbol X \boldsymbol \beta)^\mathsf{T} (\boldsymbol y - \boldsymbol X \boldsymbol \beta) \\
+    & = \boldsymbol y^\mathsf{T} \boldsymbol y - 2 \boldsymbol \beta^\mathsf{T} \boldsymbol X^\mathsf{T} \boldsymbol y + \boldsymbol \beta^\mathsf{T} \boldsymbol X^\mathsf{T} \boldsymbol X \boldsymbol \beta.
+\end{align}$$
+
+This is a quadratic optimisation function. To find the model coefficients that minimise the residual sum of squares, we need to take the derivative with respect to $\boldsymbol \beta$:
+
+$$\begin{equation}
+(\#eq:rss2)
+    \frac{\partial}{\partial \boldsymbol \beta} \text{RSS}(\boldsymbol \beta) = -2 \boldsymbol X^\mathsf{T} \boldsymbol y + 2 \boldsymbol X^\mathsf{T} \boldsymbol X \boldsymbol \beta.
+\end{equation}$$
+
+We can check that this is a minimum by taking the derivative with respect to $\boldsymbol \beta$ again:
+
+$$\begin{equation}
+    \frac{\partial^2}{\partial \boldsymbol \beta \partial \boldsymbol \beta^\mathsf{T}} \text{RSS}(\boldsymbol \beta) = 2 \boldsymbol X^\mathsf{T} \boldsymbol X.
+\end{equation}$$
+
+So long as $\boldsymbol X$ has full column rank, meaning that all columns are linearly independent, $\boldsymbol X^\mathsf{T} \boldsymbol X$ is a positive definite matrix and therefore we found a minimum for the residual sum of squares. In order to find the model coefficients $\hat{\boldsymbol \beta}$ at that minimum, we set the first order derivative (Equation \@ref(eq:rss2)) equal to 0 and obtain the unique solution for $\hat{\boldsymbol \beta}$:
+
+$$\begin{align}
+    \frac{\partial}{\partial \boldsymbol \beta} \text{RSS}(\boldsymbol \beta) = -2 \boldsymbol X^\mathsf{T} \boldsymbol y + 2 \boldsymbol X^\mathsf{T} \boldsymbol X \boldsymbol \beta & = 0 \\
+    2 \boldsymbol X^\mathsf{T} \boldsymbol X \boldsymbol \beta & = 2 \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    (\boldsymbol X^\mathsf{T} \boldsymbol X) \boldsymbol \beta & = \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} (\boldsymbol X^\mathsf{T} \boldsymbol X) \boldsymbol \beta & = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    \boldsymbol I_{p \times p} \boldsymbol \beta & = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    \hat{\boldsymbol \beta} & = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y. (\#eq:beta-ols)
+\end{align}$$
+
+When the design matrix $\boldsymbol X$ is rank deficient (not full rank), the moment matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$ cannot be inverted. Therefore, the ordinary least squares estimator $\hat{\boldsymbol \beta}_{OLS}$ does not exist in that case. 
+
+> The _Statistical Science_ master's programme at Leiden University offers an elective course called _High-Dimensional Data Analysis_, taught by Dr Wessel van Wieringen and Dr Mark van de Wiel. During this course we learned how to adjust classical statistical methodology in order to tackle high-dimensional data.
+
+> **The following subsections describe some of the solutions offered in this course. More detailed derivations can be found in the published lecture notes of @VanWieringen.**
+
+### The problem with high-dimensional datasets
+
+In this thesis the focus lies on high-dimensional datasets, where the number of explanatory variables ($p$) is orders of magnitude larger than the number of observations ($n$). When $p>n$, the design matrix $\boldsymbol X$ can by definition not have full column rank, since $\text{rank}(\boldsymbol X) \leq \text{min}(n, p)$. This means that the surplus of columns (covariates) can be linearly predicted from the other columns. Therefore, high-dimensional datasets contain by definition multicollinearity and violate the assumption that all explanatory variables are linearly independent from each other. This implies that the rank of the square $p$ by $p$ matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$ is smaller than $p$, and, consequently, its inverse cannot be calculated and the model coefficients, $\hat{\boldsymbol \beta}_{OLS}$, cannot be estimated using ordinary least squares.
+
+If the square $p$ by $p$ matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$ does not have an inverse, it is called singular. A matrix $\boldsymbol A$ is singular if and only if its determinant is zero: $\text{det}(\boldsymbol A) = 0$. As an example, consider the matrix $\boldsymbol X$ given by:
+
+$$\begin{equation}
+(\#eq:X)
+    \boldsymbol X = \begin{bmatrix} 
+        1 & \phantom{-}0 & \phantom{-}1 \\ 
+        1 & -2           & \phantom{-}3 \\
+        1 & \phantom{-}1 & \phantom{-}0 \\
+        1 & \phantom{-}2 & -1 
+    \end{bmatrix}.
+\end{equation}$$
+
+Not all columns of matrix $\boldsymbol X$ are linearly independent. The first column is the row-wise sum of the other two columns. Since the column rank of a matrix is equal to the number of independent columns, $\text{rank}(\boldsymbol X) = 2$. Hence, matrix $\boldsymbol X$ has not full column rank. The moment matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$ is:
+
+$$\begin{equation}
+(\#eq:XtX)
+    \boldsymbol X^\mathsf{T} \boldsymbol X = 
+    \begin{bmatrix} 
+        \phantom{-}1 & \phantom{-}1 & \phantom{-}1 & \phantom{-}1 \\
+        \phantom{-}0 & -2           & \phantom{-}1 & \phantom{-}2 \\
+        \phantom{-}1 & \phantom{-}3 & \phantom{-}0 & -1
+    \end{bmatrix}
+    \begin{bmatrix} 
+        1 & \phantom{-}0 & \phantom{-}1 \\ 
+        1 & -2           & \phantom{-}3 \\
+        1 & \phantom{-}1 & \phantom{-}0 \\
+        1 & \phantom{-}2 & -1 
+    \end{bmatrix}
+    =
+    \begin{bmatrix} 
+        4 & \phantom{-}1 & \phantom{-}3 \\
+        1 & \phantom{-}9 & -8 \\
+        3 & -8           & \phantom{-}11
+    \end{bmatrix}.
+\end{equation}$$
+
+The calculation of a determinant of a $3 \times 3$ matrix $\boldsymbol A$ is as follows:
+
+$$\begin{align}
+    \text{det}(\boldsymbol A) & = \text{det} 
+        \begin{bmatrix} 
+            a & b & c \\
+            d & e & f \\
+            g & h & i
+        \end{bmatrix} \\
+    & = a \cdot \text{det} 
+        \begin{bmatrix}
+            e & f \\
+            h & i
+        \end{bmatrix} - b \cdot \text{det} 
+        \begin{bmatrix}
+            d & f \\
+            g & i
+        \end{bmatrix} + c \cdot \text{det} 
+        \begin{bmatrix}
+            d & e \\
+            g & h
+        \end{bmatrix} \\
+    & = a \, (e \, i - f \, h) - b \, (d \, i - f \, g) + c \, (d \, h - e \, g).
+\end{align}$$
+
+Following this example, the determinant of the moment matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$ is:
+
+$$\begin{align}
+    \text{det}(\boldsymbol X^\mathsf{T} \boldsymbol X) & = \text{det} 
+        \begin{bmatrix} 
+            4 & \phantom{-}1 & \phantom{-}3 \\
+            1 & \phantom{-}9 & -8 \\
+            3 & -8           & \phantom{-}11
+        \end{bmatrix} \\
+    & = 4 \cdot \text{det} 
+        \begin{bmatrix}
+            \phantom{-}9 & -8 \\
+            -8           & \phantom{-}11
+        \end{bmatrix} - 1 \cdot \text{det} 
+        \begin{bmatrix}
+            1 & -8 \\
+            3 & \phantom{-}11
+        \end{bmatrix} + 3 \cdot \text{det} 
+        \begin{bmatrix}
+            1 & \phantom{-}9 \\
+            3 & -8
+        \end{bmatrix} \\
+    & = 4 \cdot (9 \cdot 11 - -8 \cdot -8) - 1 \cdot (1 \cdot 11 - -8 \cdot 3) + 3 \cdot (1 \cdot -8 - 9 \cdot 3) \\
+    & = 140 - 35 - 105 \\
+    & = 0.
+\end{align}$$
+
+Therefore, $\boldsymbol X^\mathsf{T} \boldsymbol X$ is singular and its inverse is undefined.
+
+The problem of singularity can also be explained by looking at the eigendecomposition of matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$:
+
+$$\begin{equation}
+    \boldsymbol X^\mathsf{T} \boldsymbol X = \sum_{j=0}^p \lambda_j \boldsymbol v_j \boldsymbol v_j^\mathsf{T},
+\end{equation}$$
+
+where $\boldsymbol v_j$ is the eigenvector corresponding to eigenvalue $\lambda_j$, and $p = 3$. The inverse of $\boldsymbol X^\mathsf{T} \boldsymbol X$ is then:
+
+$$\begin{equation}
+    (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} = \sum_{j=0}^p \lambda_j^{-1} \boldsymbol v_j \boldsymbol v_j^\mathsf{T}.
+\end{equation}$$
+
+Since division by zero is not possible, the inverse of $\boldsymbol X^\mathsf{T} \boldsymbol X$ is undefined if $\lambda_j = 0$ for any $j \in \{ 1, 2, 3 \}$. Matrix $\boldsymbol X^\mathsf{T} \boldsymbol X$, as specified in Equation \@ref(eq:XtX), has eigenvalues $\lambda_1 = 0$, $\lambda_2 = 12 + \sqrt{39}$, and $\lambda_3 = 12 - \sqrt{39}$. 
+The derivation of these values is left as an exercise for the reader.
+According to the eigendecomposition, the inverse of $\boldsymbol X^\mathsf{T} \boldsymbol X$ is then:
+
+$$\begin{equation}
+    (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} = \frac{1}{0} \boldsymbol v_1 \boldsymbol v_1^\mathsf{T} + \frac{1}{12 + \sqrt{39}} \boldsymbol v_2 \boldsymbol v_2^\mathsf{T} + \frac{1}{12 - \sqrt{39}} \boldsymbol v_3 \boldsymbol v_3^\mathsf{T}.
+\end{equation}$$
+
+This expression is undefined, since the first summand is divided by zero. 
+
+In summary, the columns of a high-dimensional design matrix $\boldsymbol X$ are linearly dependent and this perfect multicollinearity causes $\boldsymbol X^\mathsf{T} \boldsymbol X$ to be singular. The OLS estimator of the parameter vector of the linear regression model is only well-defined if the inverse of $\boldsymbol X^\mathsf{T} \boldsymbol X$ exits. Hence, when $\boldsymbol X$ is high-dimensional the regression parameter $\hat{\boldsymbol \beta}_{OLS}$ cannot be estimated.
+
+### Regularised linear regression
+
+In order to obtain an estimate of the regression parameter vector $\boldsymbol \beta$ when $\boldsymbol X$ is not full column rank, @Ridge proposed a solution to the problem of singularity by adding a non-negative value $\lambda$ to all diagonal values of $\boldsymbol X^\mathsf{T} \boldsymbol X$. This results in the matrix $\boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p}$, with $\lambda \in \mathbb{R}_{\ge 0}$. The scalar $\lambda$ is a penalty parameter that can be tuned. In case of $\lambda = 0$ this corresponds to the previously described ordinary least squares regression. In our example of matrix $\boldsymbol X$, as specified in Equation \@ref(eq:X), for $\lambda = 1$ we get:
+
+$$\begin{equation}
+    \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} = 
+    \begin{bmatrix} 
+        4 & \phantom{-}1 & \phantom{-}3 \\
+        1 & \phantom{-}9 & -8 \\
+        3 & -8           & \phantom{-}11
+    \end{bmatrix} + 
+    \begin{bmatrix} 
+        1 & 0 & 0 \\
+        0 & 1 & 0 \\
+        0 & 0 & 1
+    \end{bmatrix} =
+    \begin{bmatrix} 
+        5 & \phantom{-}1  & \phantom{-}3 \\
+        1 & \phantom{-}10 & -8 \\
+        3 & -8            & \phantom{-}12
+    \end{bmatrix}.
+\end{equation}$$
+
+The eigenvalues of this matrix are $1$, $13 + \sqrt{39}$, and $13 - \sqrt{39}$. Because none of the eigenvalues nor, equivalently, the determinant of matrix $\boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p}$ is equal to zero, its inverse is well-defined and it is possible to obtain estimates of the regression coefficients.
+
+#### Ridge regression
+
+The simple fix for the singularity of $\boldsymbol X^\mathsf{T} \boldsymbol X$ by adding a penalty parameter $\lambda$ results in the ridge regression estimator:
+
+$$\begin{equation}
+(\#eq:beta-ridge)
+    \hat{\boldsymbol \beta}(\lambda) = (\boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p})^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y, \qquad \text{for } \lambda \in \mathbb{R}_{\ge 0}.
+\end{equation}$$
+
+The strictly positive value for $\lambda$ results in a well-defined estimator, even if $\boldsymbol X$ is high-dimensional or rank deficient. Different values for $\lambda$ can be selected and each choice for $\lambda$ results in a different ridge regression estimate. If $\boldsymbol X$ from Equation \@ref(eq:X) has a corresponding response variable $\boldsymbol y = \begin{bmatrix} 3.5 & 2.1 & -0.8 & 1.4 \end{bmatrix}^\mathsf{T}$, then the ridge regression estimates for $\lambda$ = 1, 2, and 10 are:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta}(1) & = \begin{bmatrix} 0.825 & 0.198 & 0.626 \end{bmatrix}^\mathsf{T}, \nonumber \\
+    \hat{\boldsymbol \beta}(2) & = \begin{bmatrix} 0.722 & 0.150 & 0.572 \end{bmatrix}^\mathsf{T}, \nonumber \\
+    \hat{\boldsymbol \beta}(10) & = \begin{bmatrix} 0.366 & 0.013 & 0.353 \end{bmatrix}^\mathsf{T}. \nonumber
+\end{align}$$
+
+The set of all ridge regression estimates $\{ \hat{\boldsymbol \beta}(\lambda) : \lambda \in \mathbb{R}_{>0} \}$ is called the solution path of the ridge estimator. The solution path for our example data is shown in Figure \@ref(fig:path-ridge). Cross-validation is often used to choose the optimal value for $\lambda$, which results in the best prediction performance. 
+
+```{r path-ridge, echo=FALSE, out.width="50%", fig.cap="Solution paths of the estimates of the ridge regression coefficients for $\\lambda$ increasing from $0.01$ to $10{,}000$ (plotted on a logarithmic scale)."}
+knitr::include_graphics("Figures/2.1_LinearRegression/SolutionPath_Ridge_newX.png")
+```
+
+As can be seen in Figure \@ref(fig:path-ridge), the ridge estimates of the regression coefficients converge to zero as the penalty parameter $\lambda$ becomes larger. However, this shrinkage of the regression coefficients is not strictly monotone as $\lambda$ increases, as shown by the solution path of $\beta_2(\lambda)$.
+
+The relationship between the ridge regression estimator $\hat{\boldsymbol \beta}(\lambda)$ and the true model parameter $\boldsymbol \beta$ can be seen by working out the expectation of the ridge estimator:
+
+$$\begin{align}
+    \mathbb{E} \Big[ \hat{\boldsymbol \beta}(\lambda) \Big] & = \mathbb{E} \Big[ \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \Big] \\
+    & = \mathbb{E} \Big[ \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big) \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \Big] \\
+    & = \mathbb{E} \Big[ \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big) \hat{\boldsymbol \beta} \Big] \\
+    & = \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big) \mathbb{E} \Big[ \hat{\boldsymbol \beta} \Big] \\
+    & = \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big) \boldsymbol \beta
+\end{align}$$
+
+From this derivation follows that $\mathbb{E} \big[ \hat{\boldsymbol \beta}(\lambda) \big] \neq \boldsymbol \beta$ for any $\lambda > 0$. This means that the ridge estimator is biased from the true model parameter. When $\lambda = 0$ and the inverse of $\boldsymbol X^\mathsf{T} \boldsymbol X$ exists, the ridge estimator is the same as the OLS estimator. In accordance with Figure \@ref(fig:path-ridge), it can now also be motivated that the expectation of the ridge estimator vanishes as $\lambda$ tends to infinity:
+
+$$\begin{equation}
+    \lim_{\lambda \to \infty} \mathbb{E} \big[ \hat{\boldsymbol \beta}(\lambda) \big] \ = \ \lim_{\lambda \to \infty} \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} \big)^{-1} \big( \boldsymbol X^\mathsf{T} \boldsymbol X \big) \boldsymbol \beta \ = \ \boldsymbol 0_{p \times 1}.
+\end{equation}$$
+
+In case of $\boldsymbol X$ being an orthonormal design matrix, i.e.\ $\boldsymbol X^\mathsf{T} \boldsymbol X = \boldsymbol I_{p \times p} = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1}$, the relation between the ridge and OLS estimators is:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta}(\lambda) & = ( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} )^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    & = ( \boldsymbol I_{p \times p} + \lambda \boldsymbol I_{p \times p} )^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    & = (1 + \lambda)^{-1} \boldsymbol I_{p \times p} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    & = (1 + \lambda)^{-1} (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y \\
+    & = (1 + \lambda)^{-1} \hat{\boldsymbol \beta}. (\#eq:ridge-ols)
+\end{align}$$
+
+It is clear that the ridge estimator shrinks the OLS estimator with a factor of $(1 + \lambda)$. Thus the ridge estimator converges to zero as $\lambda \to \infty$. 
+In addition to the shrinkage of the ridge estimates, the variance of the ridge estimator, Var$\left(\hat{\boldsymbol \beta}(\lambda)\right)$, is also smaller than the variance of the OLS estimator, Var$\left(\hat{\boldsymbol \beta}\right)$. Just like the expectation of the ridge estimator, the variance of the ridge estimator shrinks towards zero as penalty parameter $\lambda$ becomes large [@VanWieringen]. This means that an increase of $\lambda$ results in an increase of the bias of the ridge estimator, while reducing its variance. This leads to another motivation for using the ridge regression: the Mean Squared Error (MSE) of the ridge regression estimator. The MSE of the regression estimator gives an indication of the quality of the estimator and is defined as the expected squared difference between the true model parameter $\boldsymbol \beta$ and its estimate $\hat{\boldsymbol \beta}$. Decomposition of the MSE leads to the sum of the variance and the squared bias (see Equation \@ref(eq:mse), after @VanWieringen). For some values of $\lambda$, the ridge regression estimator balances its bias and variance in such a way that it results in a lower MSE than the OLS regression estimator (see Figure \@ref(fig:mse-ridge)).
+
+$$\begin{align}
+    \text{MSE}(\hat{\boldsymbol \beta}) & = \mathbb{E} \bigg[ \big( \hat{\boldsymbol \beta} - \boldsymbol \beta \big)^2 \bigg] \\
+    & = \mathbb{E} \bigg[ \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] + \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big)^2 \bigg] \\
+    & = \mathbb{E} \bigg[ \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] \Big)^2 + 
+    2 \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] \Big) \Big( \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big) + 
+    \Big( \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big)^2 \bigg] \\
+    & = \mathbb{E} \bigg[ \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] \Big)^2 \bigg] + \mathbb{E} \bigg[ 2 \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] \Big) \Big( \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big) \bigg] + 
+    \mathbb{E} \bigg[ \Big( \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big)^2 \bigg] \\
+    & = \mathbb{E} \bigg[ \Big( \hat{\boldsymbol \beta} - \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] \Big)^2 \bigg] +
+    \Big( \mathbb{E} \big[ \hat{\boldsymbol \beta} \big] - \boldsymbol \beta \Big)^2 \\
+    & = \text{Var} \big( \hat{\boldsymbol \beta} \big) + \text{Bias} \big( \hat{\boldsymbol \beta} \big)^2. (\#eq:mse)
+\end{align}$$
+
+```{r mse-ridge, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Decomposition of the mean squared error (MSE) into the variance and squared bias of the ridge estimator of the regression coefficients $\\hat{\\boldsymbol \\beta}(\\lambda)$, for an increasing penalty parameter $\\lambda$ (left figure). For some values of $\\lambda$ the ridge estimator outperforms the maximum likelihood (OLS) estimator in terms of MSE (right figure). Figures reproduced after @VanWieringen."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/2.1_LinearRegression/MSE_Decomposition.png", "Figures/2.1_LinearRegression/MSE_OLS_Ridge.png"))
+```
+
+#### Constrained estimation
+
+The regularised model parameter $\boldsymbol \beta(\lambda) = \begin{bmatrix} \beta_0(\lambda) & \beta_1(\lambda) & \dots & \beta_p(\lambda) \end{bmatrix}^\mathsf{T}$ is estimated by minimising the ridge loss function [@Ridge], which is defined as:
+
+$$\begin{align}
+        \mathcal{L}_{\text{ridge}}(\boldsymbol \beta; \lambda) & = \text{RSS}(\boldsymbol \beta) + \lambda \left\lVert \boldsymbol \beta \right\rVert_2^2 \\
+        & = \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \lambda \left\lVert \boldsymbol \beta \right\rVert_2^2 (\#eq:loss-ridge) \\
+        & = \sum_{i=1}^{n} \Big( y_i - \sum_{j=0}^{p} x_{ij} \beta_j \Big)^2 + \lambda \sum_{j=0}^{p} \beta_j^2.
+\end{align}$$
+
+This expression is similar to the loss function used for ordinary least squares optimisation (Equation \@ref(eq:rss)), but includes the ridge penalty term $\lambda \left\lVert \boldsymbol \beta \right\rVert_2^2$. For penalty parameter $\lambda = 0$, the ridge penalty equals zero and minimisation of the ridge loss function results in the OLS estimator. For any $\lambda > 0$, the ridge penalty contributes to the ridge loss function and yields a different minimum than the OLS estimator. The minimum of the left-hand side of the ridge loss function is already derived in Equation \@ref(eq:beta-ols) and results in $\hat{\boldsymbol \beta}_{OLS}$. The minimum of the right-hand side, however, is located at $\boldsymbol \beta = \boldsymbol 0_{p \times 1}$. This means that the $\boldsymbol \beta$ that minimises $\mathcal{L}_{\text{ridge}}(\boldsymbol \beta; \lambda)$ has to be a balance between the minimum of the sum-of-squares and the minimum of the ridge penalty. We have already demonstrated that $\lambda$ shrinks the regression coefficients towards zero. This can also be seen from Equation \@ref(eq:loss-ridge), where a larger penalty value $\lambda$ results in a larger contribution of the ridge penalty to the loss function. Therefore, in order to keep the loss as small as possible, it forces the regression coefficients to become smaller. This decreases the overall contribution of the penalty to the loss function.
+
+For a given penalty $\lambda$ we can derive the ridge regression estimator that minimises the ridge loss function by taking the derivative with respect to $\boldsymbol \beta$:
+
+$$\begin{align}
+    \frac{\partial}{\partial \boldsymbol \beta} \mathcal{L}_{\text{ridge}}(\boldsymbol \beta; \lambda) & = -2  \boldsymbol X^\mathsf{T} (\boldsymbol y - \boldsymbol X \boldsymbol \beta) + 2 \lambda \boldsymbol I_{p \times p} \boldsymbol \beta \\
+    & = -2  \boldsymbol X^\mathsf{T} \boldsymbol y + 2 ( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} ) \boldsymbol \beta. (\#eq:ridge-deriv)
+\end{align}$$
+
+When we equate this derivative to zero and solve for $\boldsymbol \beta$ we get the ridge regression estimator as formulated in Equation \@ref(eq:beta-ridge). We can check that this is a minimum by taking the second order partial derivative with respect to $\boldsymbol \beta$:
+
+$$\begin{align}
+    \frac{\partial^2}{\partial \boldsymbol \beta \boldsymbol \beta^\mathsf{T}} \mathcal{L}_{\text{ridge}}(\boldsymbol \beta; \lambda) & = 2 ( \boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p} ).
+\end{align}$$
+
+Since $(\boldsymbol X^\mathsf{T} \boldsymbol X + \lambda \boldsymbol I_{p \times p})$ is a positive definite matrix, we can conclude that the ridge regression estimator results in the minimum of the convex ridge loss function.
+
+As previously shown, the ridge regression estimator is:
+
+$$\begin{equation}
+    \hat{\boldsymbol \beta}_{\text{ridge}}(\lambda) = \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \lambda \left\lVert \boldsymbol \beta \right\rVert_2^2.
+\end{equation}$$
+
+The penalty term in this quadratic minimisation problem can be reformulated as a restriction on the optimisation problem, where the sum of the squared model parameters ($\sum_{j=0}^{p} \beta_j^2$) is not allowed to be larger than some threshold $t > 0$:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta}_{\text{ridge}} & = \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2, (\#eq:ridge-constrained) \\
+    & \text{subject to } \left\lVert \boldsymbol \beta \right\rVert_2^2 \le t.
+\end{align}$$
+
+This constrained optimisation problem can be solved by applying the Karush-Kuhn-Tucker (KKT) multiplier method [@convex]. This method states that if $\boldsymbol \beta(\alpha)$ is a local optimum of the constrained minimisation problem (Equation \@ref(eq:ridge-constrained)), then there exists a constant $\alpha \ge 0$, the KKT multiplier, such that a set of KKT conditions are satisfied. The first KKT condition that needs to be satisfied is the stationary condition, which states that the negative gradient of the objective function is equal to the gradient of the restriction multiplied by the KKT multiplier $\alpha$:
+
+$$\begin{align}
+    -\nabla \big\lVert \boldsymbol y - \boldsymbol X \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2 & = \alpha \nabla \Big( \big\lVert \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2 - t \Big) \\
+    2 \boldsymbol X \big( \boldsymbol y - \boldsymbol X \hat{\boldsymbol \beta}(\alpha) \big) & = 2 \alpha \boldsymbol I_{p \times p} \hat{\boldsymbol \beta}(\alpha) \\
+    \boldsymbol X^\mathsf{T} \boldsymbol y & = \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \alpha \boldsymbol I_{p \times p} \big) \hat{\boldsymbol \beta}(\alpha) \\
+    \hat{\boldsymbol \beta}(\alpha) & = \big( \boldsymbol X^\mathsf{T} \boldsymbol X + \alpha \boldsymbol I_{p \times p} \big)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y.
+\end{align}$$
+
+For $\alpha = \lambda$ this is the same solution as the ridge regression estimator $\hat{\boldsymbol \beta}(\lambda)$ from Equation \@ref(eq:beta-ridge). This solution is also acquired by taking the derivative with respect to $\boldsymbol \beta$ of the Lagrangian formulation for Equation \@ref(eq:ridge-constrained), equating it to zero, and solving for $\boldsymbol \beta$. This Lagrangian form is:
+
+$$\begin{equation}
+    \hat{\boldsymbol \beta}_{\text{ridge}} = \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \alpha \big( \left\lVert \boldsymbol \beta \right\rVert_2^2 - t \big)
+\end{equation}$$
+
+The second KKT condition, the complementary condition, states that $\alpha \big( \big\lVert \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2 - t \big) = 0$, so either $\alpha = 0$ or $\big\lVert \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2 - t = 0$. In case $\alpha = 0$, there is no penalty and we end up with the OLS estimator. The latter formulation leads to $t = \big\lVert \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2$. This threshold value means that the sum of the squared regression coefficients may not exceed the sum of the squared regression coefficients of the optimal solution: $\big\lVert \hat{\boldsymbol \beta} \big\rVert_2^2 \le \big\lVert \hat{\boldsymbol \beta}(\alpha) \big\rVert_2^2$.
+Therefore, the ridge estimator $\boldsymbol \beta(\lambda)$ satisfies both KKT conditions if $\alpha = \lambda$ and $t = \big\lVert \hat{\boldsymbol \beta}(\lambda) \big\rVert_2^2$.
+
+There is a one-to-one relationship between threshold $t$ and penalty parameter $\lambda$. Using the relation between the ridge and OLS estimators for the orthonormal case in Equation \@ref(eq:ridge-ols), we get:
+
+$$\begin{equation}
+    t = \sum_{j=0}^{p} \hat{\boldsymbol \beta}_j(\lambda)^2 = \frac{1}{(1 + \lambda)^2} \sum_{j=0}^{p} \hat{\boldsymbol \beta}_j^2, \nonumber
+\end{equation}$$
+
+which can be rewritten into:
+
+$$\begin{equation}
+    \lambda = \sqrt{\frac{\sum_{j=0}^{p} \hat{\boldsymbol \beta}_j^2}{t}} - 1.
+\end{equation}$$
+
+So, when we choose a larger penalty value $\lambda$, this corresponds to a smaller threshold value $t$. Then there is more regularisation of the regression coefficients, or in other words, the sum of the squared regression coefficients is not allowed to exceed a smaller threshold. We are forcing the coefficients to lie in a smaller ball around the origin with radius $\sqrt{t}$. A visualisation of the restriction on the size of the ridge regression coefficients is shown in the right panel of Figure \@ref(fig:lassoridge).
+
+```{r lassoridge, echo=FALSE, out.width="100%", fig.cap="Estimation of the lasso (left) and ridge (right) regression coefficients. Shown are the contours of the error and constraint functions. The red ellipses are the contours of the least squares error function, with the black dot in the centre showing the ordinary least squares estimation of the regression coefficients. The solid blue areas are the constraint regions $\\lvert \\beta_1 \\rvert + \\lvert \\beta_2 \\rvert \\le t$ and $\\beta_1^2 + \\beta_2^2 \\le t$, respectively. The red dot shows the estimation of the regularised coefficients, located at the intersection of the error function and the constraint region. Figure after @Hastie:ElementsOfStatisticalLearning."}
+knitr::include_graphics("Figures/2.1_LinearRegression/lasso_ridge.png")
+```
+
+#### Lasso regression
+
+Another regularisation method is the lasso regression, which is an acronym for _Least Absolute Shrinkage and Selection Operator_ [@lasso]. The lasso is very similar to the ridge, but with an essential difference in the restriction on the regression coefficients. The lasso estimator is defined as:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta}_{\text{lasso}} & = \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2, (\#eq:lasso-constrained) \\
+    & \text{subject to } \left\lVert \boldsymbol \beta \right\rVert_1 \le t.
+\end{align}$$
+
+The difference between the ridge and lasso estimators (Equations \@ref(eq:ridge-constrained) and \@ref(eq:lasso-constrained), respectively) lies in the norm of the regression coefficients in the constraint. Ridge regression puts the restriction on the sum of the squared values of $\boldsymbol \beta$, also called the squared 2-norm or $\ell_2$ norm. The constraint of the lasso regression is on the the sum of the absolute values of $\boldsymbol \beta$, called the 1-norm or $\ell_1$ norm. In general, the $p$-norm of a vector $\boldsymbol x$ of length $n$ is defined as follows:
+
+$$\begin{alignat}{3}
+    \text{$p$-norm: } \lVert \boldsymbol x \rVert_p & = \Big( \sum_{i=1}^{n} \lvert x_i \rvert^p \Big)^{1/p} \\
+    \text{1-norm: } \lVert \boldsymbol x \rVert_1 & = \Big( \sum_{i=1}^{n} \lvert x_i \rvert^1 \Big)^{1/1} && = \lvert x_1 \rvert + \lvert x_2 \rvert + \dots + \lvert x_n \rvert \\
+    \text{2-norm: } \lVert \boldsymbol x \rVert_2 & = \Big( \sum_{i=1}^{n} \lvert x_i \rvert^2 \Big)^{1/2} && = \sqrt{x_1^2 + x_2^2 + \dots + x_n^2} \\
+    \text{squared 2-norm: } \lVert \boldsymbol x \rVert_2^2 & = \bigg( \Big( \sum_{i=1}^{n} \lvert x_i \rvert^2 \Big)^{1/2} \bigg)^2 && = x_1^2 + x_2^2 + \dots + x_n^2.
+\end{alignat}$$
+
+The $\ell_1$ norm of the lasso regression results in a constraint region in parameter space in the shape of a diamond, while this is a circular shape for the $\ell_2$ norm of the ridge regression (blue areas in Figure \@ref(fig:lassoridge)). As a consequence, the lasso estimator is more likely to be located exactly on the corner of the diamond, which means that some of the regression coefficients are set to zero. This property makes the lasso regularisation a suitable method for variable selection. The regression coefficients that correspond to the explanatory variables that are the least correlated with the response variable are set to zero and therefore not included in the model. Especially for high-dimensional datasets, containing many explanatory variables, this is an easy way to determine which variables are important for predicting the response variable. Ridge regularisation does not have this nice selection property. As can be seen in Figure \@ref(fig:lassoridge), the round shape of the ridge constraint region makes is less likely to set the coefficients exactly to zero. Although the ridge coefficients are forced to shrink towards zero for an increasing penalty value, none of the corresponding explanatory variables are completely removed from the model. Occam's razor, the law of parsimony, states that when you have two competing models that make the same predictions, you should select the simpler, most parsimonious model. This means that you should strive for a statistical model containing as few explanatory variables as possible, while still making correct predictions for the response variable. Lasso regression results in a sparser model than ridge and is therefore the preferred method when the objective is to fit a model that makes good predictions based on the fewest number of variables.
+
+Just as for the ridge regression, an equivalent way to estimate the lasso parameter is by minimising the lasso loss function:
+
+$$\begin{align}
+    \mathcal{L}_{\text{lasso}}(\boldsymbol \beta; \lambda_1) & = \text{RSS}(\boldsymbol \beta) + \lambda_1 \left\lVert \boldsymbol \beta \right\rVert_1 \\
+    & = \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \lambda_1 \left\lVert \boldsymbol \beta \right\rVert_1 \\
+    & = \sum_{i=1}^{n} \Big( y_i - \sum_{j=0}^{p} x_{ij} \beta_j \Big)^2 + \lambda_1 \sum_{j=0}^{p} \lvert \beta_j \rvert.
+\end{align}$$
+
+This expression is very similar to the loss function of the ridge regression (Equation \@ref(eq:loss-ridge)), but differs in the norm of the penalty term. In order to distinguish the penalty parameters used for the ridge and lasso, they are denoted as $\lambda_2$ and $\lambda_1$ respectively, where the subscript refers to the norm used in the penalty term.
+
+Just like the ridge regression, the set of all lasso estimates $\{ \hat{\boldsymbol \beta}(\lambda_1) : \lambda_1 \in \mathbb{R}_{>0} \}$ is called the solution path of the lasso estimator. The lasso solution path for the same example data as used for the ridge regression is shown in Figure \@ref(fig:path-lasso). As $\lambda_1$ increases, the lasso estimates shrink to zero and the regression model becomes sparser. The regularisation paths for the lasso estimates are piece-wise linear, with the slopes changing at the penalty values where the next coefficient becomes zero [@lar; @piecewiselinear]. The estimate for $\beta_1(\lambda_1)$ in Figure \@ref(fig:path-lasso) is already set to 0 for a very small value of $\lambda_1$, because the corresponding variable in Equation \@ref(eq:X) is the sum of the other two variables and therefore redundant for the model. This is an example of the variable selection of lasso, resulting in a sparse model. As the penalty value becomes larger, more coefficients are set to zero, until the model does not contain any variables anymore. Cross-validation is often used to choose the optimal value for $\lambda_1$ (and with that the optimal subset of variables), which results in the best prediction performance.
+
+```{r path-lasso, echo=FALSE, out.width="50%", fig.cap="Solution paths of the estimates of the lasso regression coefficients for increasing $\\lambda_1$."}
+knitr::include_graphics("Figures/2.1_LinearRegression/SolutionPath_Lasso_newX.png")
+```
+
+In general, there is no explicit expression for the lasso regression estimator. However, for the orthonormal case, i.e. $\boldsymbol X^\mathsf{T} \boldsymbol X = \boldsymbol I_{p \times p} = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1}$ and $\hat{\boldsymbol \beta} = (\boldsymbol X^\mathsf{T} \boldsymbol X)^{-1} \boldsymbol X^\mathsf{T} \boldsymbol y = \boldsymbol X^\mathsf{T} \boldsymbol y$, it is possible to derive the lasso estimates of the regression coefficients:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta} (\lambda_1) &= \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \lambda_1 \left\lVert \boldsymbol \beta \right\rVert_1 \\ 
+    & = \underset{\boldsymbol \beta}{\operatorname{arg min}} \boldsymbol y^\mathsf{T} \boldsymbol y - \boldsymbol y^\mathsf{T} \boldsymbol X \boldsymbol \beta - \boldsymbol \beta^\mathsf{T} \boldsymbol X^\mathsf{T} \boldsymbol y + \boldsymbol \beta^\mathsf{T} \boldsymbol X^\mathsf{T} \boldsymbol X \boldsymbol \beta + \lambda_1 \sum_{j=0}^{p} \lvert \beta_j \rvert \\
+    & \propto \underset{\boldsymbol \beta}{\operatorname{arg min}} - \hat{\boldsymbol \beta}^\mathsf{T} \boldsymbol \beta - \boldsymbol \beta^\mathsf{T} \hat{\boldsymbol \beta} + \boldsymbol \beta^\mathsf{T} \boldsymbol \beta + \lambda_1 \sum_{j=0}^{p} \lvert \beta_j \rvert \\
+    & = \underset{\beta_1, \dots, \beta_p}{\operatorname{arg min}} \sum_{j=0}^{p} \left( -2 \hat{\beta}_{j}^{\text{OLS}} \beta_j + \beta_j^2 + \lambda_1 \lvert \beta_j \rvert \right) \\
+    & = \sum_{j=0}^{p} \left( \underset{\beta_j}{\operatorname{arg min}} -2 \hat{\beta}^{\text{OLS}}_{j} \beta_j + \beta_j^2 + \lambda_1 \lvert \beta_j \rvert \right),
+\end{align}$$
+
+where $\propto$ indicates proportionality. In this equation the optimisation is within the summation over the different covariates, so this minimisation problem can be solved for each regression coefficient individually. This gives:
+
+$$\begin{equation}
+    \underset{\beta_j}{\operatorname{arg min}} -2 \hat{\beta}^{\text{OLS}}_{j} \beta_j + \beta_j^2 + \lambda_1 \lvert \beta_j \rvert = 
+    \begin{cases} 
+        \underset{\beta_j}{\operatorname{arg min}} -2 \hat{\beta}^{\text{OLS}}_{j} \beta_j + \beta_j^2 + \lambda_1 \beta_j & \text{if } \beta_j > 0 \\ 
+        \underset{\beta_j}{\operatorname{arg min}} -2 \hat{\beta}^{\text{OLS}}_{j} \beta_j + \beta_j^2 - \lambda_1 \beta_j & \text{if } \beta_j < 0.
+    \end{cases}
+\end{equation}$$
+
+We can now optimise this for each element of the regression parameter separately. Taking the derivative with respect to the $j$-th coefficient, setting this to zero, and solve for $\beta_j$ gives:
+
+$$\begin{equation}
+    \hat{\beta}_j(\lambda_1) = 
+    \begin{cases} 
+        \hat{\beta}^{\text{OLS}}_{j} - \frac{1}{2} \lambda_1 & \text{if } \beta_j > 0 \\
+        \hat{\beta}^{\text{OLS}}_{j} + \frac{1}{2} \lambda_1 & \text{if } \beta_j < 0.
+    \end{cases}
+\end{equation}$$
+
+We can put these two equations together in a general form of the lasso regression estimator:
+
+$$\begin{equation}
+    \hat{\beta}_j(\lambda_1) = \text{sign} \big( \hat{\beta}_j \big) \big( \lvert \hat{\beta}_j \rvert - \textstyle{\frac{1}{2}} \lambda_1 \big)_{+}, (\#eq:lasso-ols)
+\end{equation}$$
+
+where $\hat{\beta}_j$ is the $j$-th element of the OLS estimator $\hat{\boldsymbol \beta}$, and $\big( \lvert \hat{\beta}_j \rvert - \textstyle{\frac{1}{2}} \lambda_1 \big)_{+} = \text{max} \{0,  \lvert \hat{\beta}_j \rvert - \textstyle{\frac{1}{2}} \lambda_1 \}$.
+
+#### Elastic net
+
+A disadvantage of the lasso penalisation is that it can select maximally $\text{min}\{n, p\} = \text{rank}(\boldsymbol X)$ covariates in the regression model, even though there could be more variables associated with the response variable. So, for high-dimensional datasets, the number of variables that are included in the lasso model depends on the number of samples in the dataset, whereas ridge penalisation can include all $p$ variables in the regression model. Another limitation of the lasso is that it tends to select only one variable from a group of correlated variables, while including more of these variables in the model could result in better predictions for the response variable.
+
+A solution to these problems was proposed by @elasticnet in the form of a new regularisation technique, called _elastic net_. The elastic net is similar to the lasso, but includes an additional $\ell_2$ penalty on the regression coefficients, resulting in the following loss function:
+
+$$\begin{align}
+    \mathcal{L}_{\text{elastic net}}(\boldsymbol \beta; \lambda_1; \lambda_2) & = \text{RSS}(\boldsymbol \beta) + \lambda_1 \left\lVert \boldsymbol \beta \right\rVert_1 + \lambda_2 \left\lVert \boldsymbol \beta \right\rVert_2^2 \\
+    & = \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2 + \lambda_1 \left\lVert \boldsymbol \beta \right\rVert_1 + \lambda_2 \left\lVert \boldsymbol \beta \right\rVert_2^2 (\#eq:loss-elasticnet) \\
+    & = \sum_{i=1}^{n} \Big( y_i - \sum_{j=0}^{p} x_{ij} \beta_j \Big)^2 + \lambda_1 \sum_{j=0}^{p} \lvert \beta_j \rvert + \lambda_2 \sum_{j=0}^{p} \beta_j^2.
+\end{align}$$
+
+The elastic net combines the properties of both the lasso and ridge penalties. The $\ell_1$ part of the penalty term leads to a sparse model, where some of the model coefficients are set to zero. The $\ell_2$ part removes the limitation on the maximum number of selected variables in the model, it stabilises the $\ell_1$ regularisation path, and it allows the selection of groups of correlated variables, also called grouping effect [@groupingeffect]. 
+
+The contribution of the lasso and the ridge penalties is determined by hyperparameter $\alpha \in [ 0, 1 ]$. The value of $\alpha$ states the proportion of the penalty that uses the $\ell_2$ norm. The proportion of the penalty that uses the $\ell_1$ norm is $(1 - \alpha)$. Including this hyperparameter in Equation \@ref(eq:loss-elasticnet) gives the more general formulation of the elastic net penalty:
+
+$$\begin{equation}
+    \lambda \sum_{j=0}^{p} \left( (1 - \alpha) \lvert \beta_j \rvert + \alpha \beta_j^2 \right). \\
+\end{equation}$$
+
+A low value for $\alpha$ means that the lasso penalty dominates the constraint on the regression coefficients and results in a sparser model. For $\alpha = 0$ the elastic net is the same as the lasso. Conversely, a high $\alpha$ means that the ridge penalty dominates the constraint on the regression coefficients and the estimates are less likely to be set to zero. When $\alpha = 1$ the elastic net is the same as ridge regression. The solution path of the elastic net estimator is therefore dependent on the value chosen for $\alpha$. Figure \@ref(fig:path-elasticnet) shows the solution path of the elastic net with an equal contribution of the lasso and ridge penalties. The plot looks very similar to the solution path of the lasso (Figure \@ref(fig:path-lasso)), but due to the contribution of the ridge penalty the solution paths are not piece-wise linear and a larger value for $\lambda$ is required to shrink the regression estimates to exactly zero.
+
+```{r path-elasticnet, echo=FALSE, out.width="50%", fig.cap="Solution paths of the estimates of the elastic net regression coefficients for increasing $\\lambda$, when $\\alpha = 0.5$."}
+knitr::include_graphics("Figures/2.1_LinearRegression/SolutionPath_ElasticNet_newX.png")
+```
+
+The loss function of the elastic net (Equation \@ref(eq:loss-elasticnet)) can be reformulated into a constraint minimisation problem for the regression estimator:
+
+$$\begin{align}
+    \hat{\boldsymbol \beta}_{\text{elastic net}} & = \underset{\boldsymbol \beta}{\operatorname{arg min}} \left\lVert \boldsymbol y - \boldsymbol X \boldsymbol \beta \right\rVert_2^2, \\
+    & \text{subject to } (1 - \alpha) \left\lVert \boldsymbol \beta \right\rVert_1 + \alpha \left\lVert \boldsymbol \beta \right\rVert_2^2 \le t, \\
+    & \text{with } \alpha = \frac{\lambda_2}{\lambda_1 + \lambda_2}.
+\end{align}$$
+
+Since the constraint of the elastic net is a combination of the $\ell_1$ and $\ell_2$ constraints on the regression coefficients, the constraint region of the elastic net is a mixture of those of the lasso and ridge. A graphical representation of the constraint regions of the lasso, ridge and elastic net is shown in Figure \@ref(fig:lasso-elasticnet-ridge). Depending on the chosen value for $\alpha$, the constraint region for the elastic net becomes more similar to that of the lasso (small $\alpha$) or the ridge (large $\alpha$).
+
+The optimisation problem of the elastic net can be formulated in the equation of the lasso, using augmented versions of $\boldsymbol y$, $\boldsymbol X$, $\boldsymbol \beta$, and $\lambda$:
+
+$$\begin{equation}
+    \hat{\boldsymbol \beta}_{\text{elastic net}} = \underset{\boldsymbol \beta^*}{\operatorname{arg min}} \left\lVert \boldsymbol y^* - \boldsymbol X^* \boldsymbol \beta^* \right\rVert_2^2 + \lambda^* \left\lVert \boldsymbol \beta^* \right\rVert_1,
+\end{equation}$$
+
+$$\begin{align}
+    \text{where} \quad & \boldsymbol y^*_{(n+p)} = \begin{bmatrix} \boldsymbol y \\ \boldsymbol 0 \end{bmatrix}, \\
+    & \boldsymbol X^*_{(n+p) \times p} = (1 + \lambda_2)^{-\frac{1}{2}} \ \begin{bmatrix} \boldsymbol X \\ \sqrt{\lambda_2} \ \boldsymbol I_{p \times p} \end{bmatrix}, \\
+    & \boldsymbol \beta^* = \sqrt{1 + \lambda_2} \ \boldsymbol \beta, \\
+    & \lambda^* = \frac{\lambda_1}{\sqrt{1 + \lambda_2}}.
+\end{align}$$
+
+The augmented dataset $\boldsymbol X^*$ has $n + p$ rows and $p$ columns, thus rank $p$. This allows the elastic net to select all $p$ predictors, which was not possible for the lasso. From this reformulation of the elastic net estimator it follows that $\hat{\boldsymbol \beta}_{\text{elastic net}} = \frac{\hat{\boldsymbol \beta}^*}{\sqrt{1 + \lambda_2}}$, where $\hat{\boldsymbol \beta}^*$ is the lasso estimator for the augmented data. In case of orthogonal covariates, the elastic net estimator for the initial dataset $\{ \boldsymbol y, \boldsymbol X \}$ can be derived from this formula, containing the lasso estimator conform Equation \@ref(eq:lasso-ols) for the augmented dataset $\{ \boldsymbol y^*, \boldsymbol X^* \}$:
+
+$$\begin{align}
+    \hat{\beta}_{j,\ \text{elastic net}} & = \frac{\text{sign} \left( \hat{\beta}_{j,\ \text{OLS}}^{*} \right) \text{max} \left( 0, \left\lvert \hat{\beta}_{j,\ \text{OLS}}^* \right\rvert - \frac{1}{2} \lambda^* \right)}{\sqrt{1 + \lambda_2}} \\
+    & = \frac{\hat{\beta}_{j,\ \text{OLS}}^{*}}{\sqrt{1 + \lambda_2}} \cdot \text{max} \left( 0, 1 - \frac{\lambda^*}{2 \left\lvert \hat{\beta}_{j,\ \text{OLS}}^* \right\lvert} \right) \\
+    & = \frac{\frac{\hat{\beta}_{j,\ \text{OLS}}}{\sqrt{1 + \lambda_2}}}{\sqrt{1 + \lambda_2}} \cdot \text{max} \left( 0, 1 - \frac{\frac{\lambda_1}{\sqrt{1 + \lambda_2}}}{\frac{2 \left\lvert \hat{\beta}_{j,\ \text{OLS}} \right\lvert}{\sqrt{1 + \lambda_2}}} \right) \\
+    & = \frac{\hat{\beta}_{j,\ \text{OLS}}}{1 + \lambda_2} \cdot \text{max} \left( 0, 1 - \frac{\lambda_1}{2 \left\lvert \hat{\beta}_{j,\ \text{OLS}} \right\lvert } \right) \\
+    & = (1 + \lambda_2)^{-1} \hat{\beta}_{j,\ \text{lasso}}.
+\end{align}$$
+
+In order to correct for the double amount of shrinkage in the elastic net, @elasticnet suggest to rescale their so called naïve elastic net coefficients by multiplying them with the factor ($1 + \lambda_2$). They then refer to this rescaled version as the elastic net. However, the commonly used implementation of the elastic net by @glmnet does not use this rescaling.
+
+```{r lasso-elasticnet-ridge, echo=FALSE, out.width="60%", fig.cap="Two-dimensional contours of the constraint regions for the regression coefficients of the lasso $\\left( \\lvert \\beta_1 \\rvert + \\lvert \\beta_2 \\rvert = 1 \\right)$, ridge $\\left( \\beta_1^2 + \\beta_2^2 = 1 \\right)$, and elastic net $\\left( (1 - \\alpha) ( \\lvert \\beta_1 \\rvert + \\lvert \\beta_2 \\rvert ) + \\alpha ( \\beta_1^2 + \\beta_2^2 ) = 1 \\right)$, where $\\alpha = 0.5$."}
+knitr::include_graphics("Figures/2.1_LinearRegression/Penalisations.png")
+```
+
+### Linear regression for classification
+
+Now that we have a good understanding of linear regression (with or without regularisation), we can adjust this statistical method such that it can also be used for classification. Suppose we have a fictional dataset $\{ \boldsymbol y, \boldsymbol x \}$, where explanatory variable X represents the size of a tumour measured on a continuous scale, and dichotomous response variable Y indicates whether the tumour is malignant ($y = 1$) or not ($y = 0$). The goal is then to predict whether newly observed tumours are malignant or not, based on their size. This is of course a simplified example, but intuitively we can assume that the larger the tumour, the more likely it is to be malignant [@malignant]. The left plot of Figure \@ref(fig:linearclassification) shows the fit of a linear regression model on such data. Although the response variable contains only values 0 and 1, linear regression treats it as a continuous variable with range $(-\infty, \infty)$. Therefore, the regression line exceeds the range $[0, 1]$. In order to decide whether a tumour is malignant, we set a threshold value for the decision. When the predicted value is larger than this threshold value ($\hat{y} > 0.5$), the tumour is classified as malignant. When $\hat{y} \le 0.5$ the tumour is predicted to be non-malignant. 
+In this thesis, the first classification method considered in the experiments is linear regression with $\ell_1$ regularisation, also called lasso regression.
+
+Linear regression for classification works well for perfectly balanced data. However, when we add another malignant sample to the dataset with a very large tumour size, this has some undesired consequences for the fit of the linear regression model. This problem is illustrated in the right plot of Figure \@ref(fig:linearclassification). According to the decision rule with threshold value $0.5$, we would wrongly assign some of the malignant tumours to the non-malignant group (false negatives). This complication is an example of the sensitivity to outliers when using linear regression for classification. It is of course possible to choose a different threshold value for the decision rule, but it is "a mortal sin" to change the hypothesis after looking at the data. Alternative classification methods are at hand that handle these complications better.
+
+```{r linearclassification, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification using linear regression on a fictional dataset. Tumour size ($x$) is used to predict whether that tumour is malignant ($y = 1$) or not ($y= 0$). The solid line represents the linear regression model. The horizontal dashed line shows the decision threshold of $y = 0.5$. The vertical dashed line indicates the tumour size at which the decision boundary lies. Tumours with a smaller size than this value are predicted to be non-malignant (red area), while larger tumours are classified as malignant (green area). The left figure shows a balanced dataset. The classification threshold lies at a tumour size of 4.5 cm, resulting in 2 misclassifications. The right figure shows the influence of a malignant tumour with a very large size. The decision boundary lies at a tumour size of 6.3 cm. Three malignant tumours are wrongly predicted to be non-malignant."}
+knitr::include_graphics(c("Figures/2.1_LinearRegression/Classify_Linear1.png", "Figures/2.1_LinearRegression/Classify_Linear2.png"))
+```
+
+## Logistic Regression {#logisticregression}
+
+A more suitable regression method for classification is logistic regression. Unlike linear regression, which predicts a value of a continuous response variable based on a set of explanatory variables, logistic regression predicts the probability that a datapoint belongs to one of the classes. In our example, this is the probability that a tumour is malignant, given its size. This probability, $P(y=1 \ \vert \ x)$, is often denoted as $\pi$. 
+
+### Predicting probabilities
+
+Since a probability is a value between $0$ and $1$, and linear regression predicts continuous values, we cannot use this method to predict the probability that a tumour is malignant. However, instead of predicting this probability, we can predict the odds of a tumour being malignant, which is defined as the probability of a tumour being malignant divided by the probability of a tumour not being malignant:
+
+$$\begin{equation}
+    \text{odds } = \frac{P(y=1 \ \vert \ x)}{P(y=0 \ \vert \ x)} = \frac{\pi}{1-\pi}.
+\end{equation}$$
+
+Since this is a ratio, the range of possible odds values is $[0, \infty)$, which is still not compatible with the $(-\infty, \infty)$ range of the linear regression. This can be solved by taking the logarithm of the odds, also called the logit function:
+
+$$\begin{equation}
+    \text{logit } = \log \left( \frac{\pi}{1-\pi} \right).
+\end{equation}$$
+
+After taking the log of the odds, the probability of a tumour being malignant is mapped onto the range $(-\infty, \infty)$. The logit is therefore seen as the link function between the linear regression model and the prediction of the probability that a tumour is malignant:
+
+$$\begin{equation}
+    \log \left( \frac{\pi}{1 - \pi} \right) = \boldsymbol X \boldsymbol \beta + \boldsymbol \varepsilon.
+\end{equation}$$
+
+From this equation it is possible to derive the probability that a tumour is malignant, given its size, as a function of the linear regression:
+
+$$\begin{align}
+    \log \left( \frac{\pi}{1 - \pi} \right) & = \boldsymbol X \boldsymbol \beta (\#eq:logodds) \\
+    \frac{\pi}{1 - \pi} & = e^{\boldsymbol X \boldsymbol \beta} \\
+    \pi & = \frac{\exp{(\boldsymbol X \boldsymbol \beta)}}{\exp{(\boldsymbol X \boldsymbol \beta)} + 1} \\
+    P(y=1 \ \vert \ x) & = \frac{1}{1 + \exp{(- \boldsymbol X \boldsymbol \beta)}}.
+\end{align}$$
+
+This function which converts the linear regression into the probability is called the sigmoid function. The sigmoid curve has a monotonically increasing $S$-shape, which takes any value on the domain of all real numbers and returns a value between $0$ and $1$. When $\boldsymbol X \boldsymbol \beta$ tends to minus infinity ($-\infty$), sigmoid$\left(\boldsymbol X \boldsymbol \beta \right)$ tends to $0$, and when the linear expression tends to plus infinity ($+\infty$), sigmoid$\left(\boldsymbol X \boldsymbol \beta\right)$ tends to $1$. 
+
+Figure \@ref(fig:logisticclassification) shows the sigmoid curve as used in logistic regression on the same fictional datasets as used for the linear regression in Figure \@ref(fig:linearclassification). While the addition of an outlier (a very large malignant tumour) has some consequences on the shape of the linear regression and therefore on the decision boundary for classification, it has much less impact on the shape of the sigmoid curve. Logistic regression is therefore less sensitive to outliers and still performs well on unbalanced data.
+
+```{r logisticclassification, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification using logistic regression on a fictional dataset. Tumour size ($x$) is used to predict whether that tumour is malignant ($y = 1$) or not ($y = 0$). The solid line represents the sigmoid function of the logistic regression model. The horizontal dashed line shows the decision threshold of $y = 0.5$. The vertical dashed line indicates the tumour size at which the decision boundary lies. Tumours with a smaller size than this value are predicted to be non-malignant (red area), while larger tumours are classified as malignant (green area). The left figure shows a balanced dataset. The classification threshold lies at a tumour size of 4.5 cm, resulting in 2 misclassifications. The right figure shows that the addition of a malignant tumour with a very large size has no influence on the decision boundary, which is still 4.5 cm."}
+knitr::include_graphics(c("Figures/2.2_LogisticRegression/Classify_Logistic1.png", "Figures/2.2_LogisticRegression/Classify_Logistic2.png"))
+```
+
+### Interpretation of coefficients
+
+Because logistic regression predicts the probability of being assigned to one of the groups of the categorical response variable, instead of predicting a continuous response value, the interpretation of the coefficients of the logistic regression model differs from that of the linear regression model. Logistic regression on the fictional data of Figure \@ref(fig:logisticclassification) (left figure) results in an estimated coefficient of the intercept of $-7.125$ and an estimated regression coefficient for tumour size of $1.583$. These coefficients can be used in Equation \@ref(eq:logodds) to calculate the log-odds of a tumour being malignant, given its size:
+
+$$\begin{equation}
+     \log \left( \frac{P(\text{Malignant} = \text{yes} \ \vert \ \text{Tumour size})}{P(\text{Malignant} = \text{no} \ \vert \ \text{Tumour size})} \right) = -7.125 + 1.583 \cdot \text{Tumour size}.
+\end{equation}$$
+
+The estimated coefficient of the intercept ($-7.125$) can be interpreted as the log-odds of a tumour being malignant when the tumour size is at the hypothetical value of zero. In other words, the odds of a tumour with the size of 0 cm being malignant is $\exp{(-7.125)} = 0.0008$. The coefficient for tumour size is the difference in log-odds for an increase in tumour size of one unit. So, for an increase of 1 cm in tumour size, the expected change in log-odds of it being malignant is $1.583$. Or, in other words, for every increase of 1 cm, the odds of the tumour being malignant is $\exp{(1.583)} = 4.87$ times larger (an increase of $387\%$). This is also called the odds ratio (OR) for tumour size, while all other possible explanatory variables are kept constant. The probability of a tumour being malignant as a function of its size is:
+
+$$\begin{equation}
+    P(\text{Malignant} = \text{yes} \ \vert \ \text{Tumour size}) = \frac{1}{1 + \exp{(7.125 - 1.583 \cdot \text{Tumour size})}}.
+\end{equation}$$
+
+### Regularised logistic regression
+
+The sigmoid function that is used for logistic regression contains the same linear expression as used for linear regression. This makes it possible to put constraints on the regression coefficients, leading to regularised logistic regression. Ridge, lasso, and elastic net regularisation for logistic regression have the same properties as discussed in the linear regression section. In this thesis we focus on the $\ell_1$ logistic regression for analysing the high-dimensional datasets.
+
+### MLE approximation
+
+In contrast to the linear regression method for classification, there is no closed-form solution for the maximum likelihood estimation of the logistic regression. However, several numerical methods are proposed to approximately solve it numerically. One of the most used methods for numerical optimisation is Newton's method, also called Newton-Raphson method. Another well-known optimisation method is gradient descent. The details of these methods are beyond the scope of this thesis.
+
+## Support Vector Machine {#svm}
+
+Another method that is widely used for classification is the support vector machine (SVM). This machine learning algorithm looks at the datapoints in feature space and finds a decision boundary that separates the datapoints from the two classes with the largest margin possible. For linear classification problems this decision boundary is often called a separating hyperplane. In order to understand the SVM classifier we look at an example in a two-dimensional feature space (see Figure \@ref(fig:svm)). Each datapoint in the training dataset belongs either to the class with label `+1` (black) or to the class with label `-1` (white) and is treated as a 2-dimensional real vector ($\boldsymbol x_i \in \mathbb{R}^{2}$), since it contains measurements on two variables (features $X_1$ and $X_2$). In general, datapoints in a $p$-dimensional feature space, belonging to two different classes, can be separated with a $(p-1)$-dimensional hyperplane. So, in our 2-dimensional example we are looking for a 1-dimensional hyperplane (a straight line) to separate the datapoints of the two classes. Many different hyperplanes are possible to separate the data perfectly. Both the blue and red lines in Figure \@ref(fig:svm) perform this task correctly, but the green line does not. The best choice for the separating hyperplane is defined as the one that results in the largest separation (margin) between the two classes, such that the distance from the separating hyperplane to the closest datapoints on each side (the support vectors) is as large as possible. This is commonly referred to as the maximum-margin hyperplane.
+The blue line in Figure \@ref(fig:svm) lies very close to its support vectors and renders only a small margin between them. The distance between the support vectors and the red line is much larger. Therefore, this decision boundary could result in fewer misclassifications on new data (smaller generalisation error). For this example dataset, the red hyperplane is considered the maximum-margin hyperplane that separates these classes best.
+
+```{r svm, echo=FALSE, out.width="50%", fig.cap="Example dataset of two classes (black and white), mapped onto a 2-dimensional Euclidean feature space with Cartesian coordinates ($x_1$, $x_2$). Lines $H_1$, $H_2$, and $H_3$ indicate proposed hyperplanes to separate the two classes. Image courtesy of @wiki:svm."}
+knitr::include_graphics("Figures/2.3_SVM/wiki_svm.png")
+```
+
+### Calculation of the margin
+
+When the training data is linearly separable, as in the example above, it is possible to find two parallel hyperplanes that separate the two classes, such that the distance between them is as large as possible. This distance between the two parallel hyperplanes is called the margin and the maximum-margin hyperplane lies in the middle of these two hyperplanes (see Figure \@ref(fig:svm2)). For perfectly linearly separable data this is called the hard-margin. In order to optimise the margin of the SVM classifier we have to find the model weights $\boldsymbol w$ that are associated with each feature ($X_1, X_2, \ldots, X_p$) and the bias $b$, such that we can define the following function:
+
+$$\begin{equation}
+    f(\boldsymbol x) = \boldsymbol{w} \cdot \boldsymbol x + b.
+\end{equation}$$
+
+The hyperplane going through the support vector(s) of the class with labels `+1` is called $H^{+}$ and the hyperplane going through the support vector(s) of the class with labels `-1` is called $H^{-}$. Each datapoint $\boldsymbol x_i$ from class `+1` results in $f(\boldsymbol x_i) \geq 1$, while datapoints from class `-1` give $f(\boldsymbol x_i) \leq -1$. According to the definition of these hard-margin hyperplanes, there are no datapoints for which $-1 < f(\boldsymbol x_i) < 1$. The decision boundary between the two classes (the separating hyperplane) is defined such that $f(\boldsymbol x_i) = 0$.
+
+```{r svm2, echo=FALSE, out.width="50%", fig.cap="Example dataset of two classes (black and white), mapped onto a 2-dimensional Euclidean feature space with Cartesian coordinates ($x_1$, $x_2$). The solid line indicates the maximum-margin hyperplane. The three highlighted datapoints are called the support vectors and are located on the margin (dashed parallel lines). Image courtesy of @wiki:svm2."}
+knitr::include_graphics("Figures/2.3_SVM/wiki_svm2.png")
+```
+
+The margin $M$ can be defined geometrically in terms of the model parameters. The first thing to note is that the weight vector $\boldsymbol {w} = \begin{bmatrix} w_1 & w_2 & \ldots & w_p \end{bmatrix}$ is perpendicular to the decision boundary. This can be shown by picking any two points $\boldsymbol x_a$ and $\boldsymbol x_b$ on the decision boundary, so we get:
+
+$$\begin{align}
+    f(\boldsymbol x_a) = \boldsymbol {w} \cdot \boldsymbol x_a + b = 0 \\
+    f(\boldsymbol x_b) = \boldsymbol {w} \cdot \boldsymbol x_b + b = 0.
+\end{align}$$
+
+These equations can be rearranged into:
+
+$$\begin{align}
+    \boldsymbol {w} \cdot \boldsymbol x_a + b &= \boldsymbol {w} \cdot \boldsymbol x_b + b \\
+    \boldsymbol {w} \cdot \boldsymbol x_a - \boldsymbol {w} \cdot \boldsymbol x_b &= 0 \\
+    \boldsymbol {w} \cdot (\boldsymbol x_a - \boldsymbol x_b) &= 0.
+\end{align}$$
+
+This shows that vector $\boldsymbol {w}$ and vector $(\boldsymbol x_a - \boldsymbol x_b)$ are orthogonal, so we can conclude that $\boldsymbol {w}$ is perpendicular to the decision boundary. This implies that we can write the difference between hyperplanes $H^+$ and $H^-$ as $\boldsymbol {w}$ times a scalar $r$. If we take a point $\boldsymbol x^-$ on hyperplane $H^-$ and its closest point on the parallel hyperplane $H^+$, called $\boldsymbol x^+$, then we can write:
+
+$$\begin{equation}
+    \boldsymbol x^+ = \boldsymbol x^- + r \boldsymbol {w}.
+\end{equation}$$
+
+Plugging this into the equation for hyperplane $H^+$ gives:
+
+$$\begin{align}
+    \boldsymbol {w} \cdot \boldsymbol x^+ + b &=  1 \\
+    \boldsymbol {w} \cdot (\boldsymbol x^- + r \boldsymbol {w}) + b &=  1 \\
+    r \left\lVert \boldsymbol {w} \right\rVert^2_2 + \boldsymbol {w} \cdot \boldsymbol x^- + b &= 1 \\ 
+    r \left\lVert \boldsymbol {w} \right\rVert^2_2 - 1 &= 1 \\
+    r &= \frac{2}{\left\lVert \boldsymbol {w} \right\rVert^2_2}.
+\end{align}$$
+
+So now we are able to calculate margin $M$ between hyperplanes $H^+$ and $H^-$:
+
+$$\begin{align}
+    M &=  \left\lVert \boldsymbol x^+ - \boldsymbol x^- \right\rVert_2 \\
+    &= \left\lVert r \boldsymbol {w} \right\rVert_2 \\
+    &= \frac{2}{\left\lVert \boldsymbol {w} \right\rVert^2_2} \left\lVert \boldsymbol {w} \right\rVert_2 \\
+    &= \frac{2}{\left\lVert \boldsymbol {w} \right\rVert_2}. (\#eq:margin)
+\end{align}$$
+
+### Constrained optimisation problem
+
+We now have defined how to calculate the margin $M$, based on the weight vector $\boldsymbol {w}$. But in order to find the separating hyperplane that results in the maximum margin between the datapoints of the two classes, we have to find the optimal values for $\boldsymbol {w}$. Maximisation of the margin, defined in Equation \@ref(eq:margin) as $\frac{2}{\left\lVert \boldsymbol {w} \right\rVert_2}$, is the same as minimising $\left\lVert \boldsymbol {w} \right\rVert_2$. For mathematical convenience we can square the norm of the weight vector and multiply it by $\frac{1}{2}$, which does not affect the optimum. This results in a constrained optimisation problem, where the objective is to minimise $\frac{1}{2} \left\lVert \boldsymbol {w} \right\rVert^2_2$, subject to the constraint that all the datapoints lie on the correct side of the separating hyperplane. This is often referred to as the primal form of the linear SVM and is formulated as follows:
+
+$$\begin{align}
+    & \underset{\boldsymbol w}{\operatorname{arg min}} \frac{1}{2} \left\lVert \boldsymbol {w} \right\rVert^2_2 \\
+    \text{subject to}\\
+    & \forall i: y_i (\boldsymbol {w} \cdot \boldsymbol x_i + b) \geq 1.
+\end{align}$$
+
+Since this is a quadratic optimisation problem, the surface is a paraboloid with a single global minimum. Generally, we can find this minimum by taking the derivative, set this equal to zero, and solve for $\boldsymbol {w}$. However, we first have to deal with the constraints. Using the method of Lagrange multipliers it is possible to find the optimum of our objective, subject to all $n$ constraints. Each constraint is multiplied by a Lagrange multiplier $\alpha_i$ and the sum of all $n$ multiplications is subtracted from the objective. This leads to the primal form of the Lagrangian optimisation function:
+
+$$\begin{align}
+    \underset{\boldsymbol w,\ b}{\operatorname{arg min}} \mathcal{L}_p &= \frac{1}{2} \left\lVert \boldsymbol {w} \right\rVert^2_2 - \sum_{i=1}^{n} \alpha_i \big[ y_i (\boldsymbol {w} \cdot \boldsymbol x_i + b) - 1 \big] \\
+    & = \frac{1}{2} \left\lVert \boldsymbol {w} \right\rVert^2_2 - \sum_{i=1}^{n} \alpha_i y_i \boldsymbol {w} \cdot \boldsymbol x_i - \sum_{i=1}^{n} \alpha_i y_i b + \sum_{i=1}^{n} \alpha_i (\#eq:lagrp) \\
+    \text{subject to} \\
+    & \forall i: \alpha_i \geq 0.
+\end{align}$$
+
+Now we can find the optimum by taking the partial derivative of the Lagrangian function $\mathcal{L}_p$ with respect to $\boldsymbol {w}$, setting this to zero and solve for $\boldsymbol {w}$.
+
+$$\begin{align}
+    \frac{\partial \mathcal{L}_p}{\partial \boldsymbol {w}} & = \boldsymbol {w} - \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i = 0 \nonumber \\
+    \boldsymbol {w} & = \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i. (\#eq:pdw)
+\end{align}$$
+
+We also have to take the partial derivative with respect to bias $b$:
+
+$$\begin{align}
+    \frac{\partial \mathcal{L}_p}{\partial b} & = - \sum_{i=1}^{n} \alpha_i y_i = 0 \nonumber \\
+    \sum_{i=1}^{n} \alpha_i y_i &= 0. (\#eq:pdb)
+\end{align}$$
+
+This Lagrangian primal problem is a quadratic optimisation problem with $p + 1$ parameters that need to be optimised with $n$ inequality constraints. When dealing with high-dimensional datasets where $p \gg n$ this is not very efficient. Instead of minimising the Lagrangian primal problem over $\boldsymbol {w}$ and $b$, subject to the $n$ constraints on $\boldsymbol {\alpha}$ (Equation \@ref(eq:lagrp)), we can now formulate the Lagrangian dual problem and maximise over $\boldsymbol {\alpha}$ by substituting the relations obtained in Equations \@ref(eq:pdw) and \@ref(eq:pdb). This way we get rid of the dependence on $\boldsymbol {w}$ and $b$.
+
+$$\begin{align}
+    \underset{\boldsymbol \alpha}{\operatorname{arg max}} \mathcal{L}_d &= \frac{1}{2} \bigg( \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i \bigg) \cdot \bigg( \sum_{j=1}^{n} \alpha_j y_j \boldsymbol x_j \bigg) - \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i \cdot \bigg( \sum_{j=1}^{n} \alpha_j y_j \boldsymbol x_j \bigg) - \sum_{i=1}^{n} \alpha_i y_i b + \sum_{i=1}^{n} \alpha_i \nonumber \\
+    &= \frac{1}{2} \bigg( \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i \bigg) \cdot \bigg( \sum_{j=1}^{n} \alpha_j y_j \boldsymbol x_j \bigg) - \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i \cdot \bigg( \sum_{j=1}^{n} \alpha_j y_j \boldsymbol x_j \bigg) - 0 + \sum_{i=1}^{n} \alpha_i \nonumber \\
+        &= \sum_{i=1}^{n} \alpha_i - \frac{1}{2} \sum_{i=1}^{n} \sum_{j=1}^{n} \alpha_i \alpha_j y_i y_j (\boldsymbol x_i \cdot \boldsymbol x_j) \\
+        \text{subject to} \\
+        & \forall i: \alpha_i \geq 0 \text{ and } \sum_{i=1}^{n} \alpha_i y_i = 0.
+\end{align}$$
+
+In this dual formulation of the Lagrangian optimisation function we only have $n$ parameters that need to be optimised, with $n$ equality and $n$ inequality constraints. Since the dual form does not contain the computationally expensive inner product $\boldsymbol {w} \cdot \boldsymbol x$, it can be solved more efficiently than the primal form. Additionally, most of the $\alpha_i$ values will turn out to be equal to zero. The few $\boldsymbol x_i$ with non-zero values of $\boldsymbol {\alpha}_i$ correspond to the support vectors. Another advantage of the dual form is that it contains a scalar product that only involves data vectors. This makes it possible to apply the kernel trick, which maps the data into another dimension where it is possible to divide the classes of the data with a clear margin [@kernels]. The dual form of the constrained optimisation problem is often solved by using the dual coordinate descent method for linear SVM [@dualsvm], which goes beyond the scope of this thesis.
+
+Now that we know the optimal values for $\boldsymbol {\alpha}$, we are able to find the weights $\boldsymbol {w}$ for the maximum-margin hyperplane in accordance with Equation \@ref(eq:pdw). The bias term $b$ can then be calculated as follows:
+
+$$\begin{equation}
+    b = \frac{1}{n} \sum_{i=1}^{n} y_i - \boldsymbol {w} \cdot \boldsymbol x_i.
+\end{equation}$$
+
+The SVM classifier can now be used to classify a new and unseen datapoint $\boldsymbol {u}$ that is measured on our $p$ features, by looking at the sign of:
+
+$$\begin{align}
+    f(\boldsymbol {u}) &= \boldsymbol {w} \cdot \boldsymbol {u} + b \\
+    &= \sum_{i=1}^{n} \alpha_i y_i \boldsymbol x_i \cdot \boldsymbol {u} + b.
+\end{align}$$
+
+### Not linearly separable classes
+
+The example above contains data from two classes that are perfectly linearly separable. This makes it possible to find a hyperplane that separates the data such that all datapoints are located on the correct side of the hyperplane. However, this is not always possible. When we have datapoints from two classes that are not linearly separable, we have to allow for hyperplanes that misclassify some of the points in the training data. Therefore we can include a cost parameter, called $C$, in the optimisation that indicates how much we want to avoid misclassification. In order to quantify the distance of a misclassified datapoint $\boldsymbol x_i$ to its correct side of the separating hyperplane, we introduce the slack variable $\xi_i$. For a misclassified datapoint $\boldsymbol x_i$ with class label `+1` this distance $\xi_i$ is defined as the distance from $\boldsymbol x_i$ to hyperplane $H^+$. For misclassified datapoints with class label `-1` we take the distance to hyperplane $H^-$. For datapoints that are located on the correct side of the separating hyperplane $\xi_i = 0$. The corresponding loss function is called the Hinge loss, which gives 0 loss (cost) to correctly classified datapoints, while for misclassified datapoints the loss increases linearly with the distance from the correct hyperplane. The new formulation of the optimisation problem for the so-called soft-margin SVM is as follows:
+
+$$\begin{align}
+(\#eq:svm)
+    & \underset{\boldsymbol w}{\operatorname{arg min}}  \frac{1}{2} \left\lVert \boldsymbol {w} \right\rVert^2_2 + C \sum_{i=1}^{n} \xi_i \\
+    \text{subject to} \\
+    & \forall i: y_i (\boldsymbol {w} \cdot \boldsymbol x_i + b) \geq 1 - \xi_i \\
+    & \forall i: \xi_i \geq 0.
+\end{align}$$
+
+From this formulation it can be seen that $C$ is a regularisation parameter, which controls the trade-off between achieving few misclassifications on the training data $\left( \sum_{i=1}^{n} \xi_i \right)$ and minimising the norm of the weights $\left( \frac{1}{2} \| \boldsymbol {w} \|^2_2 \right)$. A large value of $C$ forces the sum of all slack variables to be very small, in order to minimise the whole optimisation problem. Therefore, the optimisation will result in a separating hyperplane with as few misclassifications as possible at the cost of a smaller margin. When the value of $C$ is chosen to be too large the classifier produces a decision boundary for the training data with such a small margin that it performs poorly on new data. This is called overfitting. On the other hand, Equation \@ref(eq:svm) shows that a small value of $C$ allows for more misclassifications and therefore results in a separating hyperplane with a larger margin, which performs better on new data. However, when $C$ is chosen to be too small the classifier will tolerate too many misclassifications and the resulting decision boundary will be too general to separate the classes correctly. This is called underfitting. Just like overfitting, underfitting results in poor classification performance on new data, as seen in Figure \@ref(fig:underfitting-overfitting). If the $C$ value is small enough it could even allow misclassifications when the training data is linearly separable. An example of the difference between small and large values for $C$ in such a situation is visually shown in Figure \@ref(fig:cparameter). The optimal choice of $C$ is often determined by means of cross-validation.
+
+```{r cparameter, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="The cost parameter tells the SVM optimisation how much you want to avoid misclassification of each training example. A small value for $C$ (left figure) allows some misclassification and results in a separating hyperplane with a large margin, while a large value for $C$ (right figure) forces the separating hyperplane to avoid misclassification as much as possible and results in a small margin. The left figure shows the SVM decision boundary for a small $C$ value. The right figure shows the SVM decision boundary for a large $C$ value."}
+knitr::include_graphics(c("Figures/2.3_SVM/SVM_small_C_poly.png", "Figures/2.3_SVM/SVM_large_C_poly.png"))
+```
+
+### Regularised support vector machine
+
+Just like the classification methods discussed in the previous sections, regularisation can also be applied on the support vector machine by putting a restriction on the weights. The optimisation problem of the soft-margin SVM in Equation \@ref(eq:svm) can be rewritten into the $1$-norm SVM [@l1svm]:
+
+$$\begin{equation}
+    \underset{\boldsymbol {w},\ b}{\operatorname{arg min}} \sum_{i=1}^n \max \big( 0, 1 - y_i \left( \boldsymbol {w} \cdot \boldsymbol x_i + b \right) \big) + \lambda \left\lVert \boldsymbol {w} \right\rVert_1,
+\end{equation}$$
+
+where an $\ell_1$ restriction is put on the sum of the absolute values of the model weights. For the simulations and experiments in this thesis we will use this SVM with $\ell_1$ regularisation. To allow for overlapping classes, a soft-margin is applied with slack variables that correct for datapoints that are located on the wrong side of the separating hyperplane between the classes.
+
+## LESS {#less}
+
+The last classification method for high-dimensional data considered in this thesis is the Lowest Error in a Sparse Subspace (LESS) classifier, as proposed by @VeenmanTax:LESS. This method is similar to the support vector machine with $\ell_1$ regularisation, discussed in the previous section. An important difference, however, is that LESS makes use of a distribution model based on the observations of each class. In this thesis we focus on two-class problems, where each object $i$ has a class label $y_i$ being either `-1` or `+1`. The dataset $\boldsymbol X$ can therefore be split into objects $\boldsymbol X_1$ with labels `-1` and objects $\boldsymbol X_2$ with labels `+1`. Each subset $\boldsymbol X_k$, with class $k \in \{ 1, 2 \}$, contains $n_k$ objects with measurements on $p$ variables, which can be used to make a model of the class distributions. Separately for each class, we can calculate the mean of each variable, resulting in the empirical mean vector $\boldsymbol {\hat{\mu}}_k$ of length $p$. In addition, $\boldsymbol {\Sigma}_k$ is the $p\times p$ covariance matrix of subset $\boldsymbol X_k$, with its diagonal corresponding to the estimated variance vector $\boldsymbol {\hat{\sigma}}^2_k$ of class $k$. These model parameters are used to decide whether a new object should be classified into class $1$ or class $2$.
+
+### Nearest mean classifier
+
+An intuitive way to classify a new datapoint is by looking at the similarity with each of the class distributions. When the variables are assumed to be independent with equal variances, i.e.\ $\boldsymbol {\Sigma}_1 = \boldsymbol {\Sigma}_2 = \boldsymbol {\sigma}^2 \boldsymbol I$, the only difference between the class distributions is their mean values. It is then sufficient to calculate the distances from a new datapoint to the estimated means of both classes and assign the datapoint to the class whose estimated mean has the shortest distance to this datapoint. This method is called the Nearest Mean Classifier and is defined as follows, using a distance measure $d$:
+
+$$\begin{equation}
+(\#eq:nmc)
+    f(\boldsymbol x) = 
+    \begin{cases}
+        -1, & \text{if } d(\boldsymbol x, \boldsymbol {\hat{\mu}}_1) - d(\boldsymbol x, \boldsymbol {\hat{\mu}}_2) < 0 \\
+        +1, & \text{otherwise}.
+    \end{cases}
+\end{equation}$$
+
+Objects are assigned to the class with label `-1` when the distance to $\boldsymbol {\hat{\mu}}_1$ is smaller than the distance to $\boldsymbol {\hat{\mu}}_2$. Different distance measures are possible, but the Euclidean (2-norm) distance is most commonly used in optimisation problems in which distances are compared. In a $p$-dimensional space (when the dataset contains $p$ explanatory variables) the Euclidean distance between datapoint $\boldsymbol x_i$ and mean vector $\boldsymbol {\hat{\mu}}_k$ is:
+
+$$\begin{equation}
+    d(\boldsymbol x_i, \boldsymbol {\hat{\mu}}_k) = \lVert \boldsymbol x_i - \boldsymbol {\hat{\mu}}_k \rVert_2 = \sqrt{(x_{i1} - \hat{\mu}_{k1})^2 + (x_{i2} - \hat{\mu}_{k2})^2 + \ldots + (x_{ip} - \hat{\mu}_{kp})^2}.
+\end{equation}$$
+
+The squared Euclidean distance can also be used:
+
+$$\begin{equation}
+    d^2(\boldsymbol x_i, \boldsymbol {\hat{\mu}}_k) = \lVert \boldsymbol x_i - \boldsymbol {\hat{\mu}}_k \rVert^2_2 = (x_{i1} - \hat{\mu}_{k1})^2 + (x_{i2} - \hat{\mu}_{k2})^2 + \ldots + (x_{ip} - \hat{\mu}_{kp})^2.
+\end{equation}$$
+
+### Weighted nearest mean classifier
+
+Some explanatory variables are more important than others for the classification of new data objects. An extension of the nearest mean classifier is the Weighted Nearest Mean Classifier [@wnmc], which assigns weights to the distances in order to indicate the relative importance of each variable for the classification problem. These weights are similar to regression coefficients. A large weight makes the corresponding variable more important and gives it more influence on the classification decision, while a weight of zero removes the respective variable from the equation. The squared diagonally weighted Euclidean distance [@sdwed] is then defined as follows:
+
+$$\begin{align}
+    d^2_m(\boldsymbol x_i, \boldsymbol {\hat{\mu}}_k) & = \lVert \boldsymbol {m} (\boldsymbol x_i - \boldsymbol {\hat{\mu}}_k) \rVert^2_2 \\
+    & = (\boldsymbol x_i - \boldsymbol {\hat{\mu}}_k)^\mathsf{T} \boldsymbol {m}^\mathsf{T} \boldsymbol {m} (\boldsymbol x_i - \boldsymbol {\hat{\mu}}_k) \\
+    & = \sum_{j=1}^p m_j^2 (x_{ij} - \hat{\mu}_{kj})^2, (\#eq:wnmc)
+\end{align}$$
+
+where $\boldsymbol m$ is a weight vector with weighting factor $m_j \geq 0$ for variable $j$. In matrix notation for dataset $\boldsymbol X$, this means that $\boldsymbol M$ is a diagonal matrix with $\boldsymbol M_{jj} = m_j \geq 0$. All off-diagonal values are zero, since the variables are assumed to be independent. Variables can be selected by setting the corresponding weighting factor $m_j > 0$, while variables are excluded from the model when $m_j = 0$. Just like the regression coefficients in linear regression, the values of the weighting factors also correct for the possible differences in measurement scales of the variables.
+
+In order to find the appropriate weights for all variables we can incorporate the weighted squared Euclidean distance (Equation \@ref(eq:wnmc)) into the nearest mean classifier (Equation \@ref(eq:nmc)). When including the constraint that all objects in the training dataset must be classified correctly, we get the following optimisation problem:
+
+$$\begin{align}
+    \forall i: \ & y_i \left( d^2_m(\boldsymbol x_i, \boldsymbol {\hat{\mu}}_1) - d^2_m(\boldsymbol x_i, \boldsymbol {\hat{\mu}}_2) \right) = \\
+    & y_i \sum_{j=1}^p m_j^2 \left( (x_{ij} - \hat{\mu}_{1j})^2 - (x_{ij} - \hat{\mu}_{2j})^2 \right) = \\
+    & y_i \sum_{j=1}^p m_j^2 \left( (x_{ij}^2 - 2x_{ij}\hat{\mu}_{1j} + \hat{\mu}_{1j}^2) - (x_{ij}^2 - 2x_{ij}\hat{\mu}_{2j} + \hat{\mu}_{2j}^2) \right) = \\
+    & y_i \sum_{j=1}^p m_j^2 \big( 2x_{ij} (\hat{\mu}_{2j} - \hat{\mu}_{1j}) + \hat{\mu}_{1j}^2 - \hat{\mu}_{2j}^2 \big) \geq 1.
+\end{align}$$
+
+Similar to the support vector machine, this inequality imposes a margin of $1$ between the classes.
+
+### Lowest Error in a Sparse Subspace
+
+Classes are often not perfectly linearly separable. In that case the model must allow for misclassifications. Therefore, a slack variable $\xi_i \geq 0$ is included for each object constraint, where $i \in \{ 1, 2, \ldots, n \}$. When the datapoint is located on the wrong side of the decision boundary, $\xi_i$ takes the distance from that point to the decision boundary, which is a positive value. When the datapoint is located on the correct side of the decision boundary, no slack value needs to be added ($\xi_i = 0$). These slack variables effectively release the constraints as follows:
+
+$$\begin{equation}
+    \forall i: y_i \sum_{j=1}^p m_j^2 \left( 2x_{ij} (\hat{\mu}_{2j} - \hat{\mu}_{1j}) + \hat{\mu}_{1j}^2 - \hat{\mu}_{2j}^2 \right) \geq 1 - \xi_i.
+\end{equation}$$
+
+The objective of LESS is to find those weights that minimise the number of misclassifications $(\sum_{i=1}^{n} \xi_i)$, while using as few features as possible $(\sum_{j=1}^{p} m_j^2)$. Cost parameter $C$ is added to balance this trade-off, similar to $\ell_1$ regularisation. This optimisation problem seems quadratic, because of the squared weight factor $m_j$ for variable $j \in \{ 1, 2, \dots, p \}$. However, we can replace $m_j^2$ with $w_j$ and turn it into a linear optimisation problem with linear constraints, which is also called a Linear program (LP). Formalisation of this constraint optimisation problem results in the Lowest Error in a Sparse Subspace (LESS), as proposed by @VeenmanTax:LESS:
+
+$$\begin{align}
+(\#eq:less)
+    & \text{min} \sum_{j=1}^p w_j + C \sum_{i=1}^n \xi_i, \\
+    \text{subject to:} \ & \forall i: y_i \sum_{j=1}^p w_j \left( 2x_{ij} (\hat{\mu}_{2j} - \hat{\mu}_{1j}) + \hat{\mu}_{1j}^2 - \hat{\mu}_{2j}^2 \right) \geq 1 - \xi_i, \\
+    & \forall i: \xi_i \geq 0, \\
+    & \forall j: w_j \geq 0.
+\end{align}$$
+
+Linear Programming problems can be solved efficiently, even when it contains huge amounts of variables ($\xi_i$'s and $w_j$'s) and constraints. A visualisation of the LESS classifier on some example data is shown in Figure \@ref(fig:less).
+
+```{r less, echo=FALSE, out.width="50%", fig.cap="LESS classifier showing the decision boundary and the estimated means for both classes."}
+knitr::include_graphics("Figures/2.4_LESS/LESS_poly_means.png")
+```
