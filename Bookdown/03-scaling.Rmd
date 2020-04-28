@@ -1,0 +1,54 @@
+# Scaling Methods {#scaling}
+
+The LESS classifier, described in Section \@ref(less), makes use of a scaling method based on the empirical means of both classes for each variable. For a given datapoint $x_{ij}$ it calculates the squared distance to $\hat{\mu}_{2j}$, the estimated mean of class $2$ of variable $j$, and subtracts that from the squared distance to $\hat{\mu}_{1j}$, the estimated mean of class $1$ of variable $j$. This rescaling of the data gives the LESS classifier an advantage, since it makes use of the difference between the means of both classes. The constraints of the LESS classifier as formulated in Equation \@ref(eq:less) can be written as:
+
+$$\begin{align}
+    & \forall i: y_i \boldsymbol{w}' \boldsymbol{\Phi}(\boldsymbol{x}_i) \geq 1 - \xi_i, \\
+    & \text{with } \boldsymbol{w} = \begin{bmatrix} w_1 \\ w_2 \\ \vdots \\ w_p \end{bmatrix}
+    \text{and } \boldsymbol{\Phi}(\boldsymbol{x}_i) = \begin{bmatrix} \phi_{\mu_k}(x_{i1}) \\ \phi_{\mu_k}(x_{i2}) \\ \vdots \\ \phi_{\mu_k}(x_{ip}) \end{bmatrix}, \\
+    & \text{where } \phi_{\mu_k}(x_{ij}) = (x_{ij} - \hat{\mu}_{1j})^2 - (x_{ij} - \hat{\mu}_{2j})^2, (\#eq:scalingless) \\
+    & \text{for } i = 1, 2, \dots, n \text{ and } j = 1, 2, \dots, p.
+\end{align}$$
+
+This shows that the function $\phi_{\mu_k}(\boldsymbol{x}_i)$ scales the data vector $\boldsymbol{x}_i$ using the empirical class means of each variable ($\boldsymbol{\hat{\mu}}_{1}$ and $\boldsymbol{\hat{\mu}}_{2}$). This notation of the constraint of the LESS classifier shows similarities with that of the Support Vector Machine, where $\boldsymbol{\Phi}(\boldsymbol{x}_i)$ is replaced with $\boldsymbol{x}_i$ and a bias term is added (see Section \@ref(svm)). So, the important difference lies in the scaling of the data as shown in Equation \@ref(eq:scalingless). We call this scaling method _LESS scaling with class-specific means_, with abbreviation $\phi_{\mu_k}$. The corresponding  version of the LESS classifier that uses this type of variable scaling will be denoted as $\text{LESS}_{\mu_k}$.
+
+Of course there are many other scaling methods possible. In this chapter we propose a number of additional variations of this variable scaling method based on the empirical class means, leading to other versions of the LESS classifier with different properties. An easy and obvious adjustment to the LESS scaling with class-specific means is to also correct for the empirical variance of each class in each dimension. Therefore, the difference between the complete distributions of both classes is taken into consideration. This leads to the following scaling equation:
+
+$$\begin{equation}
+(\#eq:scalinglessstd)
+    \phi_{\mu_k\sigma_k^2}(x_{ij}) = 
+    \frac{(x_{ij} - \hat{\mu}_{1j})^2}{\hat{\sigma}_{1j}^2} -
+    \frac{(x_{ij} - \hat{\mu}_{2j})^2}{\hat{\sigma}_{2j}^2}.
+\end{equation}$$
+
+We call this scaling method _LESS scaling with class-specific means and variances_, with abbreviation $\phi_{\mu_k\sigma_k^2}$. By correcting for the variance of each class in each variable, $\phi_{\mu_k\sigma_k^2}$ estimates two additional parameters and is therefore able to model the class distributions more accurately than $\phi_{\mu_k}$. When the training data is a good representation of the population, this should result in better predictions for new data. However, when this is not the case, the resulting classification model tends to overfit the training data and will perform worse on new data. 
+
+In a high-dimensional setting we often deal with very small sample sizes. This makes it difficult to make accurate estimations of the mean and variance parameters of each class. We therefore propose a third scaling method, which we call _LESS scaling with class-specific means and pooled variance_, with abbreviation $\phi_{\mu_k\bar{\sigma}^2}$. Just like $\phi_{\mu_k}$ and $\phi_{\mu_k\sigma_k^2}$, this method makes use of the estimated mean of each class of each variable. The difference with the previous method is that, instead of estimating the variance per class, it uses the combined variance of both classes. For each variable this combined variance, $\bar{\sigma}^2_j$, is calculated by subtracting the corresponding class means from the data and estimating the variance of the combined classes. So, $\boldsymbol{\mu}_1$ is subtracted from all datapoints from class $1$ and $\boldsymbol{\mu}_2$ is subtracted from all datapoints from class $2$, after which the variance is calculated over the resulting datapoints. Therefore, more objects can be used to estimate the combined variance for each dimension, resulting in a more accurate scaling of the data. This combined variance is also called the pooled variance, which can also be calculated by taking the weighted average of the variances of both classes. The equation for $\phi_{\mu_k\bar{\sigma}^2}$ is as follows:
+
+$$\begin{align}
+    &\phi_{\mu_k\bar{\sigma}^2}(x_{ij}) = 
+    \frac{(x_{ij} - \hat{\mu}_{1j})^2}{\bar{\sigma}_j^2} - 
+    \frac{(x_{ij} - \hat{\mu}_{2j})^2}{\bar{\sigma}_j^2}, (\#eq:scalinglessstd2) \\
+    &\text{where } \bar{\sigma}_{j}^2 = \frac{n_1 \hat{\sigma}_{1j}^2 + n_2 \hat{\sigma}_{2j}^2}{n_1 + n_2}.
+\end{align}$$
+
+In addition to these proposed scaling methods, we will also look at regular _standardisatio_ of the data. This is the same as calculating the $z$ scores by subtracting the empirical mean and divide by the empirical standard deviation. Both parameters are calculated over the complete training dataset, without considering possible differences between classes. Standardisation will here be abbreviated as $\phi_z$ and is calculated as follows:
+
+$$\begin{equation}
+    \phi_{z}(x_{ij}) = \frac{x_{ij} - \hat{\mu}_{j}}{\hat{\sigma}_j}.
+\end{equation}$$
+
+Finally, for comparison purposes, in our simulations and experiments we will also consider data that has not been scaled in any way. This is abbreviated as $\phi_x$. 
+
+So, to summarise, we will compare three variations of the LESS variable scaling: LESS scaling with class-specific means ($\phi_{\mu_k}$), LESS scaling with class-specific means and variances ($\phi_{\mu_k\sigma_k^2}$), LESS scaling with class-specific means and pooled variance ($\phi_{\mu_k\bar{\sigma}}$). In addition we include standardisation ($\phi_z$) and no scaling ($\phi_x$). All five scaling methods will be combined with all four classification methods discussed in the previous chapter, resulting in 20 different classifiers. However, the results of LESS without scaling ($\text{LESS}_x$) and LESS with standardisation ($\text{LESS}_z$) are excluded from this study. These combinations are meaningless, since the LESS classification method is by definition based on differences between the class means (with or without variance correction). When these class differences are not taken into account, the resulting classifier does not contain this key property. An overview of the 18 other combinations of classification methods and types of variable scaling is shown in Table \@ref(tab:methods-scales).
+
+```{r methods-scales, echo=FALSE}
+knitr::kable(booktabs = TRUE,
+             col.names = c("", "$\\boldsymbol{x}$", "$\\boldsymbol{z}$", "$\\boldsymbol{\\mu_k}$", "$\\boldsymbol{\\mu_k \\sigma^2_k}$", "$\\boldsymbol{\\mu_k \\bar{\\sigma}^2}$"),
+             rbind(c("**Linear Regression**", "lasso_none", "lasso_std", "lasso_less", "lasso_lessstd", "lasso_lessstd2"),
+                   c("**Logistic Regression**", "logreg_none", "logreg_std", "logreg_less", "logreg_lessstd", "logreg_lessstd2"),
+                   c("**SVM**", "svm_none", "svm_std", "svm_less", "svm_lessstd", "svm_lessstd2"),
+                   c("**LESS**", "--", "--", "less_less", "less_lessstd", "less_lessstd2")),
+             caption = "Overview of the four classification methods in combination with the five variable scaling methods considered in this study, with corresponding code names. For the linear regression, logistic regression, and support vector machine we used the $\\ell_1$ regularised versions. Variables were scaled with methods $x$ (no scaling), $z$ (standardisation), $\\mu_k$ (LESS scaling with class-specific means), $\\mu_k \\sigma^2_k$ (LESS scaling with class-specific means and variances), and $\\mu_k \\bar{\\sigma}^2$ (LESS scaling with class-specific means and pooled variance)."
+)
+```
