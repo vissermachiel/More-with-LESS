@@ -1,0 +1,185 @@
+# Experiments on Real Data {#experiments}
+
+In addition to the simulation studies, the performance of the proposed classifiers and scaling methods is tested on a number of real-world datasets. We considered eight publicly available high-dimensional microarray datasets, with the number of variables two orders of magnitude larger than the number of samples. Descriptive statistics of these datasets are shown in Table \@ref(tab:datasets). The following section provides brief descriptions of the datasets and changes made to make them suitable for the analyses. The second section of this chapter describes the analyses on these datasets. The final section shows what happens with the classification performance when the sample sizes of the datasets are reduced. This is a similar experiment as Simulation 4, but now carried out on some empirical datasets instead of simulated data.
+
+```{r datasets, echo=FALSE}
+knitr::kable(booktabs = TRUE,
+             col.names = c("Dataset", "Class 1 ($n_1$)", "Class 2 ($n_2$)", "Sample size ($n$)", "Variables ($p$)"),
+             rbind(c("Colon", 22, 40, 62, 1908),
+                   c("Glioma", 28, 22, 50, 4434),
+                   c("Leukaemia", 47, 25, 72, 3571),
+                   c("Lung", 139, 64, 203, 3312),
+                   c("Metastasis", 34, 44, 78, 4919), 
+                   c("MLL", 20, 37, 57, 4848), 
+                   c("SRBCT", 40, 43, 83, 2308),
+                   c("Wine", 18, 26, 44, 2700)),
+             align = "lcccc",
+             caption = "Overview of the characteristics of the datasets used in the experiments.")
+```
+
+## Datasets
+
+The datasets used for the experiments in this chapter are downloaded from the Machine Learning Database Repository [@MLR]. Some datasets contain data for more than two classes, where some of these classes contain only a few samples. In this thesis we focus on classification problems with two classes. Hence, for datasets that contain more classes we combined some classes, such that the resulting two classes contain more or less equal sample sizes. Training classification models on a balanced dataset results in better prediction performance as compared to models that are trained on a dataset with many samples from one class, while samples from the other class are very scarce. In the latter case, the model could just classify all samples to the larger class. This is of course a very unsatisfying approach, for example when determining whether someone has cancer or not. Therefore, we tried to balance the classes as best as possible, while using all available samples in the datasets.
+
+### Colon
+
+The `colon` dataset contains data on gene expression in $62$ colon tissue samples [@colon]. The response variable indicates whether a sample belongs to a tumour or to normal colon tissue. The dataset has $40$ tumour and $22$ normal samples. Each tissue sample contains expression data of $1{,}908$ genes. 
+
+### Glioma
+
+The `glioma` dataset contains gene expression data of $4{,}434$ genes for a set of $50$ malignant gliomas [@glioma]. Gliomas are lethal brain tumours that start in the glial cells of the brain or the spinal cord. Different types of gliomas exist which are named after the cell type they share histological features with. The response variable assigns the glioma samples to either glioblastomas or oligodendrogliomas. This dataset contains gene expression data of $28$ glioblastomas and $22$ oligodendrogliomas. The data is preprocessed following @Yang2006.
+
+### Leukaemia
+
+The `leukaemia` dataset contains gene expression data for cancer classification of $72$ patients [@leukaemia]. The response variable contains two classes: patients with acute myeloid leukemia (AML) and patients with acute lymphoblastic leukemia (ALL). Based on the gene expression of $3{,}571$ genes it is possible to distinguish the $25$ AML patients from the $47$ ALL patients.
+
+### Lung
+
+The `lung` dataset is another high-dimensional dataset on cancer tumours, located in lung tissue [@lung]. The dataset is used to classify the correct subclass of lung carcinoma, based on mRNA expression of $3{,}312$ genes. The response variable of the dataset contains five classes: adenocarcinomas, squamous cell lung carcinomas, pulmonary carcinoids, small-cell lung carcinomas, and normal lung, containing $139$, $21$, $20$, $6$, and $17$ samples, respectively. The data is preprocessed following @Yang2006. For the experiments the $139$ adenocarcinomas are tested against all other classes combined.
+
+### Metastasis
+
+The `metastasis` dataset contains data on $78$ primary breast cancer tumours [@metas]. The response variable of this dataset indicates whether patients developed distant metastases within five years or continued to be disease-free after a period of at least five years. Of the $78$ patients in the dataset, $34$ developed metastases and $44$ remained disease-free. For all patients gene expression was measured for $4{,}919$ genes.
+
+### MLL
+
+The `MLL` dataset contains $57$ samples in three classes: mixed-lineage leukaemia gene (MLL), acute lymphoblastic leukaemia (ALL), and acute myeloid leukaemia (AML), with $20$, $17$, and $20$ samples, respectively [@mll]. The data is preprocessed following @Yang2006. The classes ALL and AML are taken together, such that the dataset has two classes containing $20$ and $37$ samples. Each sample contains gene expressions of $4{,}848$ genes.
+
+### SRBCT
+
+The `SRBCT` dataset contains $83$ samples of small, round blue-cell tumours with $2{,}308$ gene expressions [@srbct]. The response variable consists of four classes of tumours: the Ewing family of tumours (EWS), Burkitt lymphoma (BL), neuroblastoma (NB) and rhabdomyosarcoma (RMS), with $29$, $11$, $18$, and $25$ samples, respectively. The data is preprocessed following @Yang2006. The classes EWS and BL were combined. The classes NB and RMS were also taken together. The resulting dataset contains two classes with $40$ and $43$ samples.
+
+### Wine
+
+The `wine` dataset contains $44$ wine samples from four different countries: Argentina, Chile, Australia, and South Africa, with $6$, $12$, $15$, and $11$ samples, respectively [@wine]. The response variable indicates the origin of each wine. Wine samples from Argentina en Chile were taken together, just like the wines from Australia and South Africa, such that the resulting two classes contain $18$ and $26$ samples. For each wine sample gas chromatography mass spectrometry measurements were taken, resulting in $2{,}700$ variables in the dataset.
+
+## Data analysis
+
+As explained in the introduction (Chapter \@ref(introduction)), cross-validation is recommended when comparing the performance of different classification methods on high-dimensional datasets. For the analyses of our eight datasets 10-fold cross-validation is used. The data is randomly split into $10$ folds, while keeping the sample size proportion of both classes the same as in the whole dataset. The classification models are then trained on $9$ folds, which is $90\%$ of the data, and predictions are made for the fold that was left out. Then, in the next iteration, another fold is selected as test set and the models are trained on the other $9$ folds. These iterations continue until all folds have been used as test set and predictions are made for all datapoints.
+
+Within each of these iterations, the optimum values for penalisation parameter $C$ for the LESS and $\ell_1$ SVM classifiers are obtained using an inner 10-fold cross-validation procedure on the train folds. The optimum $C$ value is selected from a sequence of $51$ values, logarithmically increasing from $10^{-4}$ to $10$. The value for $C$ that results in the lowest classification error on the validation set is used in the training of the model on the complete training set of the outer cross-validation iteration. When there are multiple values for $C$ that result in the lowest error, the median value was chosen. For the lasso regression and the $\ell_1$ logistic regression models, the optimal value for the shrinkage parameter $\lambda_1$ was also determined using 10-fold cross-validation, as defined by the `glmnet` package in R [@glmnet].
+The optimal value for the penalisation parameters are selected according to the one standard error rule [@Breiman:classification; @Hastie:ElementsOfStatisticalLearning], resulting in the largest value of the shrinkage parameter at which the classification error is within one standard error of the minimal classification error. 
+So, for each of the $10$ cross-validation iterations an inner loop of cross-validation is used to determine the optimal values for hyper parameters $C$ and $\lambda_1$, which are then used for model training in that particular iteration of the outer cross-validation loop (see Figure \@ref(fig:cv)).
+
+This whole procedure is repeated $100$ times with differently sampled folds. For each classification method the resulting classification performance is averaged over these $100$ times $10$ folds. A schematic overview of the whole analysis is shown in Algorithm 6. An overview of the average model dimensionality, defined as the number of non-zero regression coefficients in the model, for each combination of classification methods and variable scaling methods for each of the eight datasets is shown in the table in Figure \@ref(fig:datasets-numbetas). The average test AUC values for each classifier for each dataset is shown in the table in Figure \@ref(fig:datasets-auc). The table in Figure \@ref(fig:datasets-accuracy) shows the average prediction accuracy for all combinations.
+
+A visual comparison between the classification performances (model dimensionality and test AUC) of all classifiers for the high-dimensional `metastasis` dataset is shown in Figure \@ref(fig:metas). The results for the `wine` dataset are shown in Figure \@ref(fig:wine). Figures for all other datasets are included in Appendix \@ref(appendix-b) and [the online dashboard](https://github.com/vissermachiel/More-with-LESS).
+
+| **Algorithm 6:** Schematic overview of the analyses of the datasets. Classification performance is assessed for all combinations of the 4 classification methods with the 5 variable scaling methods. The analyses on all datasets took $14$ days, $17$ hours, $19$ minutes, and $56$ seconds ($1{,}271{,}996$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Eight high-dimensional datasets with binary labelled data.  
+| **Result**: Classification performance of 18 different classifiers.  
+| Initialisation;  
+| **for** dataset $d$ in $1:8$ **do** {  
+|       **for** repetition $k$ in $1:100$ **do** {  
+|             Split dataset into $10$ folds;  
+|             **for** outer cross-validation loop iteration $i$ in $1:10$ **do** {  
+|                   Use fold $i$ as test set;  
+|                   Use other $9$ folds as train set;  
+|                   **for** each classification method **do** {  
+|                         **for** each scaling method **do** {  
+|                               **for** penalisation parameter $C$ in $10^{-4} : 10$ **do** {  
+|                                     Split train set into $10$ inner folds;  
+|                                     **for** inner cross-validation loop iteration $j$ in $1:10$ **do** {  
+|                                           Use fold $j$ as inner validation set;  
+|                                           Use other $9$ folds as inner train set;  
+|                                           Train model on inner train set using $C$;  
+|                                           Predict classes for inner validation set;  
+|                                     }  
+|                                     Calculate mean classification error over $10$ inner folds;  
+|                               }  
+|                               Select penalisation parameter that results in lowest error;  
+|                               Train model on train set using optimal penalisation parameter $\lambda_1$ or $C$;  
+|                               Make predictions for test set;  
+|                               Calculate model sparseness, test accuracy, and test AUC for current fold;  
+|                         }  
+|                   }  
+|             }  
+|             Average performances over $10$ folds;  
+|       }  
+|       Average performances over $100$ repetitions;  
+|       Plot results.  
+| }
+
+```{r metas, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `metastasis` dataset. The boxplots show the model dimensionality (left figure) and test AUC value (right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.1_Data/metas_numbetas.png", 
+                          "Figures/5.1_Data/metas_auc.png"))
+```
+
+```{r wine, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `wine` dataset. The boxplots show the model dimensionality (left figure) and test AUC value (right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.1_Data/wine_numbetas.png", 
+                          "Figures/5.1_Data/wine_auc.png"))
+```
+
+```{r datasets-numbetas, echo=FALSE, out.width="100%", fig.cap="The mean (standard deviation) of the model dimensionality for the classification methods with different types of variable scaling, obtained with 10-fold cross-validation, repeated $100$ times for each dataset. Linear regression, logistic regression, and support vector machine are carried out with $\\ell_1$ regularisation. All classifiers are tested in combination with scaling methods $x$ (no scaling), $z$ (standardisation), $\\mu_k$ (LESS scaling with class-specific means), $\\mu_k \\sigma^2_k$ (LESS scaling with class-specific means and variances), and $\\mu_k \\bar{\\sigma}^2$ (LESS scaling with class-specific means and pooled variance)."}
+knitr::include_graphics("Figures/5.1_Data/datasets-numbetas.png")
+```
+
+```{r datasets-auc, echo=FALSE, out.width="100%", fig.cap="The mean (standard deviation) of the test AUC for the classification methods with different types of variable scaling, obtained with 10-fold cross-validation, repeated $100$ times for each dataset. Linear regression, logistic regression, and support vector machine are carried out with $\\ell_1$ regularisation. All classifiers are tested in combination with scaling methods $x$ (no scaling), $z$ (standardisation), $\\mu_k$ (LESS scaling with class-specific means), $\\mu_k \\sigma^2_k$ (LESS scaling with class-specific means and variances), and $\\mu_k \\bar{\\sigma}^2$ (LESS scaling with class-specific means and pooled variance)."}
+knitr::include_graphics("Figures/5.1_Data/datasets-auc.png")
+```
+
+```{r datasets-accuracy, echo=FALSE, out.width="100%", fig.cap="The mean (standard deviation) of the test accuracy for the classification methods with different types of variable scaling, obtained with 10-fold cross-validation, repeated $100$ times for each dataset. Linear regression, logistic regression, and support vector machine are carried out with $\\ell_1$ regularisation. All classifiers are tested in combination with scaling methods $x$ (no scaling), $z$ (standardisation), $\\mu_k$ (LESS scaling with class-specific means), $\\mu_k \\sigma^2_k$ (LESS scaling with class-specific means and variances), and $\\mu_k \\bar{\\sigma}^2$ (LESS scaling with class-specific means and pooled variance)."}
+knitr::include_graphics("Figures/5.1_Data/datasets-accuracy.png")
+```
+
+## Increasing sample size
+
+In datasets where the sample size is very small, it is hard to train an accurate model. In such a scenario the LESS data scaling with class-specific means (and variances) of each feature can have a clear advantage over other methods, since it makes use of the distributions of the two classes in the training set. To test this hypothesis the datasets are analysed in the same way as in the previous section, but for each iteration in the outer cross-validation loop the models are trained on a random subsample of the training set. For the first iteration of this experiment only $8$ samples are selected from the training set, while keeping the proportions of the classes the same as in the complete dataset. For the next iterations the sample size of the subsample is logarithmically increased to the total sample size of the training dataset. In total, $10$ different sample sizes are tested for each dataset. 
+
+When small training sets are sampled, it can occur for some variables that the data scaling is not possible, because these variables have a variance of $0$ for one of the classes. This occurs when all samples have the same values for that variable. LESS scaling with class-specific means and variances $\left(\mu_k \sigma^2_k\right)$ is therefore not possible. There are a couple of solutions to handle this problem. The easiest solution would be to remove these variables from the model. However, since there could be a difference between the means of the two classes, it would not be favourable to throw away data when these predictors could turn out to be very informative. Another solution would be to add a small value to the within class variance (e.g. $\sigma_k^2 + 0.1$). The disadvantage of adding a pre-specified number to the class variance is that the units of the variables of the different datasets could be different. A variance of $0.5$ could be small in one dataset, but relatively large in another dataset. Therefore, instead of adding a fixed value, when the class variance of a variable is $0$ this variance is set to the lowest class variance across all variables of that dataset. This way the variance is still in the same order of magnitude as the rest of the dataset, assuming this is the case for all variables in the dataset.
+
+The experiment is repeated $100$ times with differently sampled folds. For each sample size for each classification method the resulting classification performance is averaged over these $100$ times $10$ folds. A schematic overview of the whole analysis is shown in Algorithm 7.
+
+A visual comparison of the performance of the classification methods with different types of data scaling for an increasing sample size for the `colon` dataset is shown in Figure \@ref(fig:colon-samplesize). The results for the `metastasis` dataset are shown in Figure \@ref(fig:metas-samplesize). Figures for all other datasets are included in Appendix \@ref(appendix-c) and [the online dashboard](https://github.com/vissermachiel/More-with-LESS).
+
+| **Algorithm 7:** Schematic overview of the analyses of the datasets, while increasing the sample size of the training set. Classification performance is assessed for all combinations of the 4 classification methods with the 5 variable scaling methods. The experiments on all datasets took $13$ days, $19$ hours, $56$ minutes, and $51$ seconds ($1{,}195{,}011$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Eight high-dimensional datasets with binary labelled data.  
+| **Result**: Classification performance of 18 different classifiers.  
+| Initialisation;  
+| **for** dataset $d$ in $1:8$ **do** {  
+|       **for** repetition $k$ in $1:100$ **do** {  
+|             Split dataset into $10$ folds;  
+|             **for** outer cross-validation loop iteration $i$ in $1:10$ **do** {  
+|                   Use fold $i$ as test set;  
+|                   Use other $9$ folds as train set;  
+|                   **for** Subsample $n$ in $1:10$ **do** {  
+|                         Select subsample from train set;  
+|                         **for** each classification method **do** {  
+|                               **for** each scaling method **do** {  
+|                                     **for** penalisation parameter $C$ in $10^{-4} : 10$ **do** {  
+|                                           Split train set into $10$ inner folds;  
+|                                           **for** inner cross-validation loop iteration $j$ in $1:10$ **do** {  
+|                                                 Use fold $j$ as inner validation set;  
+|                                                 Use other $9$ folds as inner train set;  
+|                                                 Train model on inner train set using $C$;  
+|                                                 Predict classes for inner validation set;  
+|                                           }  
+|                                           Calculate mean classification error over $10$ inner folds;  
+|                                     }  
+|                                     Select penalisation parameter that results in lowest error;  
+|                                     Train model on train set using optimal $\lambda_1$ or $C$;  
+|                                     Make predictions for test set;  
+|                                     Calculate model sparseness, test accuracy, and test AUC for current fold;  
+|                               }  
+|                         }  
+|                   }  
+|             }  
+|             Average performance over $10$ folds for each subsample size;  
+|       }  
+|       Average performances over $100$ repetitions;  
+|       Plot results.  
+| }
+
+```{r colon-samplesize, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) of the classification methods with different types of scaling on the `colon` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/colon_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/colon_samplesize_AUC.png"))
+```
+
+```{r metas-samplesize, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) of the classification methods with different types of scaling on the `metastasis` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/metas_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/metas_samplesize_AUC.png"))
+```
