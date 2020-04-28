@@ -1,0 +1,55 @@
+--- 
+title: "More with LESS"
+author: "Machiel Visser"
+date: "5 December 2019"
+output:
+  html_document:
+    df_print: paged
+description: This is the thesis I wrote to graduate from the Statistical Science master's programme at Leiden University. The output format for this thesis is bookdown::gitbook.
+documentclass: book
+link-citations: yes
+bibliography:
+- book.bib
+- packages.bib
+site: bookdown::bookdown_site
+biblio-style: apalike
+---
+
+# Title Page {-}
+
+![](Figures/0_TitlePage/ThesisCover.png)
+
+# Abstract {-}
+
+In this thesis we focus on linear classification problems for high-dimensional data, where the number of variables is orders of magnitude larger than the number of objects (e.g. $10$ to $100$ objects with measurements on $1{,}000$ to $10{,}000$ variables). A good classifier for such data should have high classification performance, while using as few variables as possible. The classification method proposed by @VeenmanTax:LESS, called LESS (Lowest Error in a Sparse Subspace), fulfils both of these properties and outperforms comparable methods, such as the $\ell_1$ regularised versions of linear regression, logistic regression, and support vector machine. The success of the LESS classifier could be ascribed to its scaling of the data, based on the known class means for each variable ($\mu_k$ scaling). In this thesis we take a closer look at this data scaling and describe two other variations of it, which additionally use the class variances ($\mu_k\sigma_k^2$ scaling) or the pooled variance ($\mu_k\bar{\sigma}^2$ scaling). We also combine each of these three LESS scaling methods with the $\ell_1$ regularised versions of linear regression, logistic regression, and support vector machine. These three methods are also combined with regular standardisation and without any data scaling. This gives a total of 18 different classifiers.
+
+A number of simulation studies are carried out to provide more insight into the differences in performance between the four considered classification methods in combination with the five scaling methods. The simulations are done for the following scenarios: increasing number of variables with Gaussian noise, increasing variance of the noise variables, increasing correlation between variables, increasing sample size, and increasing number of variables with Cauchy noise. In addition to these five simulation studies we compare the performance of the classifiers on eight real-world high-dimensional datasets from a variety of research fields. As a final experiment the sample sizes of these datasets are decreased to see which classification methods and scaling types still perform well for limited sample sizes. Overall, after testing all combinations of the classification methods and types of variable scaling on both simulated and empirical datasets, the best classification performances (low model dimensionality and high AUC) are achieved for LESS and $\ell_1$ logistic regression, both in combination with LESS scaling with class-specific means and pooled variance ($\mu_k\bar{\sigma}^2$ scaling), outperforming regular standardisation.
+
+All plots with the results of the simulation studies and experiments on real datasets are put together in an interactive dashboard, which can be downloaded from [GitHub](https://github.com/vissermachiel/More-with-LESS). The R code of the LESS classifier and the functions for the discussed variable scaling methods can also be found in this online repository. In the future we aim to combine all code into an R package.
+
+# Acknowledgments {-}
+
+During the process of writing this thesis I have learned a lot, both on an academic and personal level. Finishing this thesis would not have been possible without any help and I would like to take this opportunity to express a few words of gratitude towards everyone who supported me in this endeavour.
+
+First of all, I would like to thank my first supervisor, Dr. Cor Veenman, for giving me the opportunity to work on this research project. We had many meetings in which we discussed possible directions we could dive into to compare the LESS classifier to other classification methods. Cor helped me a lot with the interpretation of our results and pushed me to think about possible explanations of our findings. With his extensive knowledge about penalised optimisation problems he was able to guide me through this process. 
+
+I would also like to thank my second supervisor, Rianne de Heide. She got involved in the project at a later stage, but I am very grateful for all the help she offered me. I struggled a lot with writing the text for this thesis. Rianne coached me through this and she spent a lot of time reviewing my drafts of the chapters. Whenever I had a question or when I was stuck at something, she was always there to help me out.
+
+This thesis contains many simulation studies and experiments that took a lot of computing time. As long as it has taken me to finish this research project, it would surely have taken much longer if I had to run all the scripts on my own laptop. Thankfully, the Leiden Mathematical Institute granted me access to the Tukey server. This allowed me to run my experiments in parallel on 50 CPU cores. Apologies to all researchers who experienced any inconveniences because of this.
+
+Special thanks to my endlessly supportive parents and my brother, who never lost faith in me during this intensive period. After finishing my master's in Biology, they made it possible for me to pursue a second master's in Statistical Science. I am forever thankful for their incredible patience, support, and unconditional love during my journey of finishing this important period of my life.
+
+Lastly, I would also like to thank all my family and friends, who never failed to remind me how long I have been working on this thesis. In all seriousness, I would not have been able to finish this thesis without their support and encouragements.
+
+Thank you very much, everyone!
+
+<div align="right"> 
+_Machiel Visser_  
+_December 5, 2019_
+</div>
+
+```{r include=FALSE}
+# automatically create a bib database for R packages
+knitr::write_bib(c(.packages(), 'bookdown', 'knitr', 'rmarkdown'), 
+                 'packages.bib')
+```
