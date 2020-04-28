@@ -1,0 +1,313 @@
+# Simulation Studies {#simulations}
+
+A number of simulation studies are carried out with the statistical software R [@rproject] to provide more insight into the differences in performance between the the four considered classification methods and their corresponding loss functions (see Chapter \@ref(methods)) in a variety of scenarios. In addition, we compare the performance of the proposed variable scaling methods (see Chapter \@ref(scaling)) with that of regular standardisation and when there is no scaling used at all. During the simulation studies we compare all combinations of the four classification methods and the five variable scaling methods (see Table \@ref(tab:methods-scales) for an overview of all 18 classifiers). The $\ell_1$ regularised versions of the linear regression and logistic regression are used from the `glmnet` package [@glmnet]. For the $\ell_1$ SVM we selected the L1-regularized L2-loss support vector classification from the `LiblineaR` package [@liblinear_R; @liblinear]. The R code for the LESS classifier we wrote ourselves, just like the code for the proposed scaling methods. At a later stage, we intend to make this code available by means of a new R package.
+
+The classification performance for all simulation studies is evaluated in terms of model dimensionality (defined as the number of non-zero coefficients in the model), prediction accuracy (the percentage of correctly classified objects), and test AUC value (the area under the receiver operating characteristic curve). A good classifier should have a high prediction performance (high test accuracy and test AUC), while using as few variables as possible (small number of non-zero weights or regression coefficients) to achieve this. 
+
+For all simulation studies the experiments are repeated $100$ times on newly simulated datasets, after which the average classification performance is reported for each classifier. In order to save computing time, $50$ repetitions are run in parallel on $50$ available CPUs on the Tukey server of the Mathematical Institute of Leiden University.
+
+## Simulation 1: Dimensionality -- Gaussian noise {#simulation1}
+
+The first simulation study demonstrates what happens when the number of non-meaningful variables with Gaussian noise increases. For this experiment two separate datasets are simulated for training and for testing of the classification models. Both datasets contain equal numbers of samples for classes $k \in \{ 1, 2 \}$ with labels `A` and `B`, respectively. For the training dataset, let $\boldsymbol{X}_k \subset \boldsymbol{X}$ contain $n_k = 50$ objects sampled from the following multivariate normal distributions with $\boldsymbol{\mu}_k$ and $\boldsymbol{\Sigma}_k$ in a $1{,}000$-dimensional space.
+
+$$\begin{equation}
+    \boldsymbol{X}_1 \sim \mathcal{N} \left( \boldsymbol{\mu}_1 = 
+        \left[
+            \begin{matrix}
+                -0.5 \\
+                0 \\
+                \vdots \\
+                0 
+            \end{matrix}
+        \right]
+    , \, \boldsymbol{\Sigma}_1 = 
+        \left[
+            \begin{matrix}
+                1 & 0 & \cdots & 0 \\
+                0 & 1 & \cdots & 0 \\
+                \vdots & \vdots & \ddots & \vdots \\
+                0 & 0 & \cdots & 1 
+            \end{matrix}
+        \right]
+    \right)
+\end{equation}$$
+
+$$\begin{equation}
+    \boldsymbol{X}_2 \sim \mathcal{N} \left( \boldsymbol{\mu}_2 = 
+        \left[
+            \begin{matrix}
+                0.5 \\
+                0 \\
+                \vdots \\
+                0 
+            \end{matrix}
+        \right]
+    , \, \boldsymbol{\Sigma}_2 = 
+        \left[
+            \begin{matrix}
+                1 & 0 & \cdots & 0 \\
+                0 & 1 & \cdots & 0 \\
+                \vdots & \vdots & \ddots & \vdots \\
+                0 & 0 & \cdots & 1 
+            \end{matrix}
+        \right]
+    \right)
+\end{equation}$$
+
+Therefore, the two classes are separable in the first dimension only. All other $999$ dimensions contain random noise from the standard normal distribution $N(\mu = 0, \, \sigma^2 = 1)$. The test dataset is simulated from the same multivariate normal distributions as the training dataset, but for each class $5{,}000$ objects are sampled. A visualisation of the first two dimensions of the data used for model training and testing is shown in Figure \@ref(fig:simdata). Theoretically, the perfect classifier only needs the first dimension to distinguish between the two classes. Hence, the coefficients of all other dimensions should be set to $0$, since they do not contribute to the separation of the classes. By increasing the number of noise dimensions (from $1$ to $999$), the signal-to-noise ratio becomes smaller and it gets more difficult for the classifier to find the one true relevant dimension to separate the classes, rather than modelling the decision boundary based on some random noise.
+
+```{r simdata, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Plots of the first two dimensions of the data used for training (left figure) and testing (right figure) of the classification models in Simulation 1. The two classes are only separable in the first dimension, where datapoints of class 1 (red dots with label $A$) are sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and those of class 2 (green dots with label $B$) from $N(\\mu = 0.5, \\sigma^2 = 1)$. The second dimension contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$. Variance ellipses are included for both classes."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Train.png", 
+                          "Figures/4.1_Simulation1/Test.png"))
+```
+
+For the first iteration of this experiment only the first $2$ variables of the simulated train and test datasets are selected. In this supervised learning experiment, each combination of classification method and scaling method is trained on this training dataset and the corresponding model performance is assessed on the test dataset. All classifiers are trained and tested on the same datasets to make fair comparisons between them.
+
+The first classification method that is used is the $\ell_1$ linear regression, also called lasso regression, without any scaling of the data (`lasso_none`). In order to use this linear regression method for classification, the categorical response variable $Y$, containing labels `A` and `B`, is treated as a continuous variable with numeric values $1$ and $2$. The decision boundary for classification is set to $1.5$, such that predicted values smaller than $1.5$ are assigned to class $1$ with label `A` and predicted values equal or larger than $1.5$ are assigned to class $2$ with label `B`. As explained in Section \@ref(linearregression), lasso regression contains penalisation parameter $\lambda_1$. Before being able to train the lasso regression model, the appropriate value of $\lambda_1$ is determined by means of 10-fold cross-validation on the training dataset. The `glmnet` package [@glmnet] contains the function `cv.glmnet` to take care of this parameter tuning, based on the highest AUC value. The appropriate value for $\lambda_1$ is selected according to the one standard error rule [@Breiman:classification; @Hastie:ElementsOfStatisticalLearning], which results in the largest value of the shrinkage parameter $\lambda_1$, such that the AUC is within one standard error of the highest AUC value. After selecting the appropriate value for penalisation parameter $\lambda_1$, the model is trained on the complete training dataset and the model dimensionality is determined by counting the number of regression coefficients in the model that are not equal to zero (excluding the intercept). Based on the trained model, predictions are made for the test dataset. The predicted labels are compared to the real labels of the objects. The prediction accuracy is defined as the percentage of correctly classified objects in the test dataset. In addition, the AUC value is calculated.
+
+After finishing the lasso regression without any data scaling on the datasets containing only the first two variables, the same dataset is used to apply lasso regression in combination with the other four data scaling methods (`lasso_std`, `lasso_less`, `lasso_lessstd`, and `lasso_lessstd2`). For each of these classifiers, the same steps are taken as described above: 10-fold cross-validation is used to determine the appropriate $\lambda_1$ value; the model is trained based on the training dataset; prediction performance is assessed based on the predictions for the test dataset. The empirical (class) means and variances, used in the variable scaling methods $z$, $\mu_k$, $\mu_k\sigma_k^2$, and $\mu_k\bar{\sigma}^2$, are all estimated from the training dataset. Since predictions are made for each test datapoint separately, the rest of the test dataset is treated as unknown. Hence, it is not possible to calculate the means and variances of the complete test dataset and therefore the datapoints of the test dataset are scaled based on the means and variances of the training dataset. Otherwise the data would be used twice, which is not allowed.
+
+When all lasso classifiers are applied to the datasets with two variables, we continue with the second classification method: logistic regression with $\ell_1$ regularisation. Just like the lasso regression, this method also contains penalisation parameter $\lambda_1$, which is determined by using 10-fold cross-validation on the training dataset. Again, the `cv.glmnet` function from the `glmnet` package [@glmnet] is used to perform this cross-validation to select the optimal value for $\lambda_1$. The `glmnet` function from the same R package was used to train the model on the training dataset, after which the model dimensionality is determined. Predictions are made for the same test dataset as used for the lasso classifiers, after which the prediction accuracy and test AUC are calculated. This procedure was followed for $\ell_1$ logistic regression in combination with each of the five scaling methods on the same datasets (`logreg_none`, `logreg_std`, `logreg_less`, `logreg_lessstd`, and `logreg_lessstd2`).
+
+The third classification method that is applied on this data is the support vector machine with $\ell_1$ regularisation, also in combination with the five scaling methods (`svm_none`, `svm_std`, `svm_less`, `svm_lessstd`, and `svm_lessstd2`). For the training of these classifiers the `LiblineaR` package is used [@liblinear_R; @liblinear]. The $\ell_1$ regularisation was applied by specifying `type = 5` in the `LiblineaR` function, which stands for `L1-regularized L2-loss support vector classification`. The $\ell_1$ SVM contains penalisation parameter $C$, which is determined by means of 10-fold cross-validation on the training dataset for $51$ predefined $C$ values ranging from $0.001$ to $100$ with logarithmically increasing steps. So for each of these $51$ values for the cost parameter, 10-fold cross-validation was used to select the value for $C$ that resulted in the highest AUC value. When multiple values for $C$ render the highest AUC value, the median of these values was selected. Although selection of the lowest of these $C$ values results in the most regularisation (and therefore a sparser model), the median is used because this is a more robust estimator. If there is an even number of $C$ values that result in the highest AUC value, the smallest of the two median $C$ values is selected. When the appropriate value for penalisation parameter $C$ is determined, the model can be trained on the complete training dataset and the model dimensionality is determined. After the model is trained, predictions are made for the test dataset and the corresponding prediction accuracy and AUC value are calculated.
+
+The last classification method that is applied on the dataset containing only the first two explanatory variables is LESS. Just like the $\ell_1$ SVM, LESS also contains penalisation parameter $C$. Again, the appropriate value for this parameter is determined by means of 10-fold cross-validation on the training dataset for $51$ predefined $C$ values ranging from $0.001$ to $100$ with logarithmically increasing steps. The $C$ value that results in the highest AUC value is selected to train the LESS model on the complete training dataset. Predictions are made for the same test dataset as used for all other methods, after which the model performance is assessed. This procedure is repeated for all types of LESS scaling in combination with the LESS classification method (`less_less`, `less_lessstd`, and `less_lessstd2`).
+
+After all eighteen classifiers are finished for the first iteration of this experiment, the dimensionality of the train and test datasets is increased for the next iteration. For the second iteration of the experiment the first $3$ explanatory variables of the simulated train and test datasets are selected. So now we have one meaningful variable to separate the two classes and two variables containing Gaussian noise. Again, for each classification method the penalisation parameter is determined by means of 10-fold cross-validation on the new training dataset, after which the models are trained on this training set and classification performance is compared based on the predictions on the test dataset. Because it takes quite some time to perform the experiment every time a single noise variable is added to the datasets and since we are only interested in the general trend when increasing the dimensionality, simulation time is reduced by increasing the number of variables in the datasets in $15$ logarithmically increasing steps (i.e. $2$, $3$, $4$, $6$, $10$, $16$, $25$, $40$, $63$, $100$, $158$, $251$, $398$, $631$, $1000$ variables). For each of these $15$ dimensionalities the corresponding number of variables are selected from the simulated train and test datasets and the corresponding classification performances are assessed for all described classification methods.
+
+This whole experiment is repeated $100$ times in order to get accurate results. Over these $100$ repeats, the resulting model performances are averaged for each classifier and each dimensionality. The resulting model dimensionality and test AUC values for each classification method in combination with each scaling method are plotted against the increasing dimensionality and are shown in Figure \@ref(fig:sim1-var1).
+
+```{r sim1-var1, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=1_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=1_AUC_loglines.png"))
+```
+
+The same experiment is also performed when the $999$ noise variables contain data sampled from $N(\mu = 0, \sigma^2 = 0.1)$, instead of the standard normal distribution. This means that the variance among the sampled objects for these features is $10$ times smaller and that the datapoints are closer to each other. Therefore, it is less likely that by chance some datapoints are located far away from the mean. The classification models are expected to contain fewer non-zero weights for the noise variables. The results of this experiment are shown in Figure \@ref(fig:sim1-var01).
+
+```{r sim1-var01, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=01_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=01_AUC_loglines.png"))
+```
+
+In addition, the experiment is also carried out when the $999$ noise features contain data sampled from $N(\mu = 0, \sigma^2 = 10)$. This large variance makes it more likely that there is by chance some signal found in these features that can be used to separate the two classes. Therefore, the models are expected to contain more non-zero weights for these noise features. The results of this experiment are shown in Figure \@ref(fig:sim1-var10). A schematic overview of the whole simulation study is shown in Algorithm 1.
+
+```{r sim1-var10, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=10_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=10_AUC_loglines.png"))
+```
+
+| **Algorithm 1:** Schematic overview of Simulation 1, where the number of noise variables is increased. Classification performance is assessed for 4 classification methods in combination with 5 variable scaling methods. The whole experiment took $15$ hours, $16$ minutes, and $22$ seconds ($54{,}982$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Binary labelled data with increasing number of features  
+| **Result**: Classification performance of different classifier  
+| Initialisation;  
+| **for** noise variance $s$ in $\{0.1, 1, 10\}$ **do** {  
+|       **for** repetition $k$ in $1:100$ **do** {  
+|             Simulate train and test datasets;  
+|             **for** dimensionality $p$ in $2:1000$ **do** {  
+|                   Select first $p$ features of train and test datasets;  
+|                   **for** each classification method **do** {  
+|                         **for** each scaling method **do** {  
+|                               10-fold cross-validation to set penalisation parameter $\lambda_1$ or $C$;  
+|                               Train model on train set;  
+|                               Test model on test set;  
+|                               Calculate model dimensionality, test accuracy and test AUC;  
+|                         }  
+|                   }  
+|             }  
+|       }  
+|       Average performances over $100$ repetitions;   
+|       Plot results.  
+| }
+
+## Simulation 2: Variance {#simulation2}
+
+The second simulation study shows what happens to the classification performance when we change the variance of the noise variables. The setup for this experiment is similar to that of the previous simulation study, but now the number of variables is fixed (i.e. $2$, $10$, $100$, or $1000$) and we let the variance of the Gaussian noise variables increase from $0.01$ to $100$ in $17$ logarithmically increasing steps. The variance on the informative first dimension is kept the same ($\sigma^2 = 1$). A visualisation of the first two variables of the data used for model training and testing is shown in Figure \@ref(fig:sim2). The two top figures show data in the second dimension sampled from $N(\mu = 0, \sigma^2 = 0.01)$, while those in the two bottom figures are sampled from $N(\mu = 0, \sigma^2 = 100)$. It can be seen that a larger variance in the noise dimension could by chance result in more relevance of this dimension to separate the classes. The goal of this experiment is to see how each classification method handles this scenario and whether scaling of the data could improve the classification performance.
+
+```{r sim2, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Plots of the first two dimensions of the data used for training (left figures) and testing (right figures) of the classification models in Simulation 2. The two classes are only separable in the first dimension, where $\\sigma^2 = 1$. The second dimension contains normally distributed random noise with $\\mu = 0$ and $\\sigma^2 = 0.01$ (top figures) or $\\sigma^2 = 100$ (bottom figures)."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Train_var001.png",
+                          "Figures/4.2_Simulation2/Test_var001.png",
+                          "Figures/4.2_Simulation2/Train_var100.png",
+                          "Figures/4.2_Simulation2/Test_var100.png"))
+```
+
+A schematic overview of the whole simulation study is shown in Algorithm 2. The resulting model dimensionality and test AUC values for each classification method are plotted against the increasing variance on the noise dimensions. The resulting plots for the experiment with $2$ dimensions are shown in Figure \@ref(fig:sim2-p2). The results for the experiments with $10$, $100$, and $1{,}000$ dimensions are plotted in Figures \@ref(fig:sim2-p10), \@ref(fig:sim2-p100), and \@ref(fig:sim2-p1000), respectively.
+
+| **Algorithm 2:** Schematic overview of Simulation 2, where the variance on the noise variables is increased while the number of variables in the datasets is kept the same. Classification performance is assessed for 4 classification methods in combination with 5 variable scaling methods. The whole simulation took $1$ day, $4$ hours, $21$ minutes, and $42$ seconds ($102{,}102$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Binary labelled data with increasing variance on noise variables.  
+| **Result**: Classification performance of different classifiers.  
+| Initialisation;  
+| **for** dimensionality $p$ in $\{2, 10, 100, 1000\}$ **do** {  
+|       **for** repetition $k$ in $1:100$ **do** {  
+|             **for** variance $s$ in $0.01:100$ **do** {  
+|                   Simulate train and test datasets;  
+|                   **for** each classification method **do** {  
+|                         **for** each scaling method **do** {  
+|                               10-fold cross-validation to set penalisation parameter $\lambda_1$ or $C$;  
+|                               Train model on train set;  
+|                               Test model on test set;  
+|                               Calculate model dimensionality, test accuracy and test AUC;  
+|                         }
+|                   }
+|             }
+|       }
+|       Average performances over $100$ repetitions;  
+|       Plot results.  
+| }
+
+```{r sim2-p2, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on one noise variable. The two classes are only separable in the first dimension. The additional dimension contains random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=2_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=2_AUC_loglines.png"))
+```
+
+```{r sim2-p10, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $9$ noise variables. The two classes are only separable in the first dimension. The additional $9$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=10_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=10_AUC_loglines.png"))
+```
+
+```{r sim2-p100, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $99$ noise variables. The two classes are only separable in the first dimension. The additional $99$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=100_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=100_AUC_loglines.png"))
+```
+
+```{r sim2-p1000, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $999$ noise variables. The two classes are only separable in the first dimension. The additional $999$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=1000_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=1000_AUC_loglines.png"))
+```
+
+## Simulation 3: Rotation {#simulation3}
+
+In the third simulation the focus lies on the ability to select relevant variables, while rotating the datapoints of the first two dimensions counterclockwise around the origin. The setup for this experiment is similar to that of the previous experiments, but now the number of dimensions $p \in \{2, 10, 100, 1000\}$ and their corresponding noise variances $\sigma^2 \in \{0.1, 1, 10\}$ are fixed. The experiment is done for all $12$ combinations of $p$ and $\sigma^2$. The datapoints of the first two dimensions are rotated counterclockwise around the origin for a rotation angle increasing from $0$ to $\pi/4$ radians (0 to 45 degrees). This rotation is achieved by matrix multiplication between the datapoints in the first two dimensions and rotation matrix
+$$\begin{equation}
+    \boldsymbol{R} = \left[ 
+        \begin{matrix}
+            \cos \theta & -\sin \theta \\
+            \sin \theta & \cos \theta
+        \end{matrix}
+    \right],
+\end{equation}$$
+where $\theta$ indicates the rotation angle in radians.
+
+Without rotation, the two classes are theoretically only separable in the first dimension, since the other dimensions contain normally distributed random noise. When rotating the datapoints of the first two dimensions, the second dimension becomes increasingly relevant for the classification problem. A rotation of $\pi/4$ rad results in equal importance of dimensions 1 and 2. In this scenario the coefficients of both dimensions should become non-zero. The maximum rotation angle is set to $\pi/4$ rad, since a larger angle would by means of symmetry result in a scenario that is already considered. Only the first two dimensions are rotated, while the additional dimensions are included to provide extra noise. Figure \@ref(fig:sim3) shows an example of train and test datapoints that are rotated at an angle of $\pi/4$ rad. 
+
+```{r sim3, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Plots of the first two dimensions of the data used for training (left figure) and testing (right figure) of the classification models in Simulation 3, after rotating the data $\\pi/4$ radians (45 degrees) counterclockwise around the origin. The two classes are only separable in the first dimension, but the larger the rotation angle, the more important the second dimension becomes in the classification problem."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Train_var01_rot.png", 
+                          "Figures/4.3_Simulation3/Test_var01_rot.png"))
+```
+
+A schematic overview of the whole simulation study is shown in Algorithm 3. The resulting model dimensionality and test AUC values for each classification method are plotted against the increasing rotation angle. The results for the experiments with 2 and 10 dimensions, both containing noise sampled from $N(\mu=0, \sigma^2=1)$, are plotted in Figures \@ref(fig:sim3-p2-var1) and \@ref(fig:sim3-p10-var1), respectively. The other parameter settings for the number of dimensions $p \in \{ 2, 10, 100, 1000 \}$ and the Gaussian noise variance $\sigma^2 \in \{ 0.1, 1, 10 \}$ show similar results. These plots are included in Appendix \@ref(appendix-a) and [the online dashboard](https://github.com/vissermachiel/More-with-LESS) for completeness.
+
+| **Algorithm 3:** Schematic overview of Simulation 3, where the first two dimensions are rotated counterclockwise around the origin for an increasing rotation angle. Classification performance is assessed for 4 classification methods in combination with 5 variable scaling methods. The whole simulation took $10$ days, $13$ hours, $41$ minutes, and $42$ seconds ($913{,}302$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Binary labelled data with increasing rotation angle.  
+| **Result**: Classification performance of different classifiers.  
+| Initialisation;  
+| **for** dimensionality $p$ in $\{2, 10, 100, 1000\}$ **do** {  
+|       **for** noise variance $s$ in $\{0.1, 1, 10\}$ **do** {  
+|             **for** repetition $k$ in $1:100$ **do** {  
+|                   Simulate train and test datasets;  
+|                   **for** rotation angle $\theta$ in $0:90$ degrees **do** {  
+|                         Rotate first $2$ dimensions of train and test datasets;  
+|                         **for** each classification method **do** {  
+|                               **for** each scaling method **do** {  
+|                                     10-fold cross-validation to set penalisation parameter $\lambda_1$ or $C$;  
+|                                     Train model on train set;  
+|                                     Test model on test set;  
+|                                     Calculate model dimensionality, test accuracy and test AUC;  
+|                               }  
+|                         }  
+|                   }  
+|             }  
+|             Average performances over $100$ repetitions;  
+|             Plot results.  
+|       }  
+| }  
+
+```{r sim3-p2-var1, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $2$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variable contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$. The second dimension becomes more important when rotating the data and is included more often in the model."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=2_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=2_var=1_AUC_lines.png"))
+```
+
+```{r sim3-p10-var1, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the first two dimensions of the dataset. The dataset contains $10$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional nine variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$. The second dimension becomes more important when rotating the data and is included more often in the model."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=10_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=10_var=1_AUC_lines.png"))
+```
+
+## Simulation 4: Sample size {#simulation4}
+
+Another interesting experiment is to test how well the classification methods perform for increasing sample sizes in the training dataset, while keeping all other properties constant. Again, the setup of this experiment is similar to that of the previous experiments. The number of dimensions $p \in \{2, 10, 100, 1000\}$ and the variance in the noise variables $\sigma^2 \in \{0.01, 1, 10\}$ are fixed (12 combinations) and the sample size for each of the two classes is increased from $5$ to $100$ in $20$ logarithmically increasing steps. Training the classification models with only a few datapoints would result in lower prediction performance compared to models that are trained on many samples from both classes. In this simulation study we test how well the LESS classifier performs when only few samples are available to train the model and compare its performance with that of lasso regression, $\ell_1$ logistic regression, and $\ell_1$ SVM. The variable scaling methods make use of the means (and variances) of the classes in the training dataset, which could be an advantage when there is limited training data available. It is therefore expected that the classification methods in combination with these scaling methods will be more robust against small sample sizes and result in better predictions. However, a small sample size also results in a large standard error of the mean, which could make the used prediction model less reliable. Moreover, estimation of the class means and variances renders less degrees of freedom for estimating the regression coefficients of the classification model. An interesting aspect of this simulation study is therefore the rate at which the prediction performance improves for the different classification methods, but also for the different types of variable scaling, when increasing the sample size of the training dataset.
+
+The training dataset of the first sample size iteration in this simulation study contains only $5$ samples per class. Choosing the optimal value for the regularisation parameter was previously done by means of 10-fold cross-validation. However, for this simulation study the train set is split into $5$ folds, in such a way that each fold contains an equal number of samples from each of the classes. 
+
+Algorithm 4 shows a schematic overview of the whole simulation study. The results for the experiment with $10$ dimensions, containing $9$ noise variables with datapoints sampled from $N(\mu=0, \sigma^2=1)$ are shown in Figure \@ref(fig:sim4-p10-var1). Results of the other parameter settings for the number of dimensions $p \in \{ 2, 10, 100, 1000 \}$ and the Gaussian noise variance $\sigma^2 \in \{ 0.1, 1, 10 \}$ show similar results. These plots are included in Appendix \@ref(appendix-a) and \href{https://github.com/vissermachiel/More-with-LESS}{the online dashboard} for completeness.
+
+| **Algorithm 4:** Schematic overview of Simulation 4, where the sample size of the training dataset is increased, while the number of variables and the variance of the noise are kept constant. Classification performance is assessed for 4 classification methods in combination with 5 variable scaling methods. The whole simulation took $2$ days, $1$ hour, $59$ minutes, and $40$ seconds ($179{,}980$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Binary labelled data with increasing sample size.  
+| **Result**: Classification performance of different classifiers.  
+| Initialisation;  
+| **for** dimensionality $p$ in $\{2, 10, 100, 1000\}$ **do** {  
+|       **for** noise variance $s$ in $\{0.1, 1, 10\}$ **do** {  
+|             **for** repetition $k$ in $1:100$ **do** {  
+|                   **for** sample size $n$ in $10:200$ **do** {  
+|                         Simulate train and test datasets;  
+|                         **for** each classification method **do** {  
+|                               **for** each scaling method **do** {  
+|                                     5-fold cross-validation to set penalisation parameter $\lambda_1$ or $C$;  
+|                                     Train model on train set;  
+|                                     Test model on test set;  
+|                                     Calculate model dimensionality, test accuracy and test AUC;  
+|                               }  
+|                         }  
+|                   }  
+|             }  
+|             Average performances over $100$ repetitions;  
+|             Plot results.  
+|       }  
+| }
+
+```{r sim4-p10-var1, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $10$ dimensions, but the two classes are only separable in the first dimension. The additional $9$ dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=10_var=1_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=10_var=1_AUC_loglines.png"))
+```
+
+## Simulation 5: Dimensionality -- Cauchy noise {#simulation5}
+
+In order to test the robustness of the classifiers to non-Gaussian noise we repeat the first simulation study with Cauchy noise. The standard Cauchy distribution coincides with the Student's $t$-distribution with one degree of freedom. As compared to the standard normal distribution, data sampled from the standard Cauchy distribution contains more mass in the tails. This makes the model training more difficult, because more extreme (small or large) values are to be expected in the simulated datasets that could cause random signal in the noise variables. A schematic overview of this simulation study is shown in Algorithm 5. The plots with the results of this experiment are show in Figure \@ref(fig:sim5).
+
+| **Algorithm 5:** Schematic overview of Simulation 5, where the number of variables containing Cauchy noise is increased. Classification performance is assessed for 4 classification methods in combination with 5 variable scaling methods. The whole experiment took $8$ hours, $46$ minutes, and $21$ seconds ($31{,}581$ seconds) to complete on $50$ CPU cores running in parallel.  
+| **Data**: Binary labelled data with increasing number of features.  
+| **Result**: Classification performance of different classifiers.  
+| Initialisation: $\text{degrees of freedom} = 1$;  
+| **for** repetition $k$ in $1:100$ **do** {  
+|       Simulate train and test datasets;  
+|       **for** dimensionality $p$ in $2:1000$ **do** {  
+|             Select first $p$ features of train and test datasets;  
+|             **for** each classification method **do** {  
+|                   **for** each scaling method **do** {  
+|                         10-fold cross-validation to set penalisation parameter $\lambda_1$ or $C$;  
+|                         Train model on train set;  
+|                         Test model on test set;  
+|                         Calculate model dimensionality, test accuracy and test AUC;  
+|                   }  
+|             }  
+|       }  
+| }  
+| Average performances over $100$ repetitions;  
+| Plot results.
+
+```{r sim5, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class 1 is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class 2 is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from the standard Cauchy distribution ($t$-distribution with $1$ degree of freedom)."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.5_Simulation5/Simulation5_Sparseness_loglines.png", 
+                          "Figures/4.5_Simulation5/Simulation5_AUC_loglines.png"))
+```
