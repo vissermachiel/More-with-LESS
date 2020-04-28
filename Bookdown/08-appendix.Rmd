@@ -1,0 +1,321 @@
+# (APPENDIX) Appendix {-} 
+
+# Figures Simulation Studies {#appendix-a}
+
+## Simulation 1 {#appendix-a-sim1}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=01_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=01_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=1_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=1_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class $1$ is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.1_Simulation1/Simulation1_var=10_Sparseness_loglines.png", 
+                          "Figures/4.1_Simulation1/Simulation1_var=10_AUC_loglines.png"))
+```
+
+## Simulation 2 {#appendix-a-sim2}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on one noise variable. The two classes are only separable in the first dimension. The additional dimension contains random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=2_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=2_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $9$ noise variables. The two classes are only separable in the first dimension. The additional $9$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=10_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=10_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $99$ noise variables. The two classes are only separable in the first dimension. The additional $99$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=100_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=100_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing variance on $999$ noise variables. The two classes are only separable in the first dimension. The additional $999$ dimensions contain random noise for both classes, sampled from a normal distribution with $\\mu = 0$ and $\\sigma^2$ logarithmically increasing from $0.01$ to $100$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.2_Simulation2/Simulation2_P=1000_Sparseness_loglines.png", 
+                          "Figures/4.2_Simulation2/Simulation2_P=1000_AUC_loglines.png"))
+```
+
+## Simulation 3 {#appendix-a-sim3}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $2$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variable contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=2_var=01_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=2_var=01_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $2$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variable contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=2_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=2_var=1_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $2$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variable contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=2_var=10_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=2_var=10_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $10$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=10_var=01_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=10_var=01_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $10$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=10_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=10_var=1_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $10$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=10_var=10_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=10_var=10_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $100$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=100_var=01_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=100_var=01_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $100$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=100_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=100_var=1_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $100$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=100_var=10_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=100_var=10_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $1000$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=1000_var=01_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=1000_var=01_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $1000$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=1000_var=1_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=1000_var=1_AUC_lines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing rotation angle of the two dimensions of the dataset. The dataset contains $1000$ variables, but the two classes are only separable in the dimension of the first variable, where class $1$ $\\sim N(\\mu = -0.5, \\sigma^2 = 1)$ and class $2$ $\\sim N(\\mu = 0.5, \\sigma^2 = 1)$. The additional variables contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.3_Simulation3/Simulation3_P=1000_var=10_Sparseness_lines.png", 
+                          "Figures/4.3_Simulation3/Simulation3_P=1000_var=10_AUC_lines.png"))
+```
+
+## Simulation 4 {#appendix-a-sim4}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $2$ dimensions, but the two classes are only separable in the first dimension. The additional dimension contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=2_var=01_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=2_var=01_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $2$ dimensions, but the two classes are only separable in the first dimension. The additional dimension contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=2_var=1_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=2_var=1_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $2$ dimensions, but the two classes are only separable in the first dimension. The additional dimension contains random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=2_var=10_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=2_var=10_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $10$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=10_var=01_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=10_var=01_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $10$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=10_var=1_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=10_var=1_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $10$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=10_var=10_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=10_var=10_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $100$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=100_var=01_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=100_var=01_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $100$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=100_var=1_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=100_var=1_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $100$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=100_var=10_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=100_var=10_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $1000$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 0.1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=1000_var=01_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=1000_var=01_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $1000$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 1)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=1000_var=1_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=1000_var=1_AUC_loglines.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing sample size in the training dataset. The sample size for each class is increased from $5$ to $100$ in $20$ logarithmically increasing steps. The dataset contains $1000$ dimensions, but the two classes are only separable in the first dimension. The additional dimensions contain random noise for both classes, sampled from $N(\\mu = 0, \\sigma^2 = 10)$."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.4_Simulation4/Simulation4_P=1000_var=10_Sparseness_loglines.png", 
+                          "Figures/4.4_Simulation4/Simulation4_P=1000_var=10_AUC_loglines.png"))
+```
+
+## Simulation 5 {#appendix-a-sim5}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left figure) and test AUC (right figure) for increasing number of noise variables. The two classes are only separable in the first dimension, where class 1 is sampled from $N(\\mu = -0.5, \\sigma^2 = 1)$ and class 2 is sampled from $N(\\mu = 0.5, \\sigma^2 = 1)$. All additional dimensions contain the same random noise for both classes, sampled from the standard Cauchy distribution ($t$-distribution with $1$ degree of freedom)."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/4.5_Simulation5/Simulation5_Sparseness_loglines.png", 
+                          "Figures/4.5_Simulation5/Simulation5_AUC_loglines.png"))
+```
+
+# Figures Analysis of Real Data {#appendix-b}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `colon` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/colon_numbetas.png", 
+                          "Figures/5.1_Data/colon_auc.png",
+                          "Figures/5.1_Data/colon_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `glioma` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/glioma_numbetas.png", 
+                          "Figures/5.1_Data/glioma_auc.png",
+                          "Figures/5.1_Data/glioma_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `leukaemia` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/leukaemia_numbetas.png", 
+                          "Figures/5.1_Data/leukaemia_auc.png",
+                          "Figures/5.1_Data/leukaemia_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `lung` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/lung_numbetas.png", 
+                          "Figures/5.1_Data/lung_auc.png",
+                          "Figures/5.1_Data/lung_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `metastasis` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/metas_numbetas.png", 
+                          "Figures/5.1_Data/metas_auc.png",
+                          "Figures/5.1_Data/metas_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `MLL` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/mll_numbetas.png", 
+                          "Figures/5.1_Data/mll_auc.png",
+                          "Figures/5.1_Data/mll_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `SRBCT` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/srbct_numbetas.png", 
+                          "Figures/5.1_Data/srbct_auc.png",
+                          "Figures/5.1_Data/srbct_2dd.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Classification performance of all classifiers on the `wine` dataset. The boxplots show the model dimensionality (top left figure) and test AUC value (top right figure), averaged over $100$ repetitions. Scaling methods in order from left to right: $x$, $z$, $\\mu_k$, $\\mu_k \\sigma^2_k$, and $\\mu_k \\bar{\\sigma}^2$. Both performance metrics are combined into a two dimensional plot (bottom figure), summarising the classification performance of each classifier."}
+par(mfrow = c(2, 2))
+knitr::include_graphics(c("Figures/5.1_Data/wine_numbetas.png", 
+                          "Figures/5.1_Data/wine_auc.png",
+                          "Figures/5.1_Data/wine_2dd.png"))
+```
+
+# Figures Increasing Sample Size of Real Data {#appendix-c}
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `colon` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/colon_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/colon_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `glioma` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/glioma_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/glioma_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `leukaemia` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/leukaemia_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/leukaemia_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `lung` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/lung_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/lung_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `metastasis` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/metas_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/metas_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `MLL` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/mll_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/mll_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `SRBCT` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/srbct_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/srbct_samplesize_AUC.png"))
+```
+
+```{r, echo=FALSE, fig.ncol=2, fig.show="hold", out.width="50%", fig.cap="Model dimensionality (left  figure) and test AUC (right figure) of the classification methods with different types of scaling on the `wine` dataset, for an increasing number of training samples. Results are averaged over $100$ repetitions."}
+par(mfrow = c(1, 2))
+knitr::include_graphics(c("Figures/5.2_Data_SampleSize/wine_samplesize_numbetas.png", 
+                          "Figures/5.2_Data_SampleSize/wine_samplesize_AUC.png"))
+```
+
+# Interactive Dashboard and R Code {#appendix-d}
+
+All plots resulting from the simulation studies and experiments on real datasets are put together in an interactive dashboard, which can be downloaded from GitHub: 
+
+[https://github.com/vissermachiel/More-with-LESS](https://github.com/vissermachiel/More-with-LESS)
+
+The dashboard with interactive plots makes it possible to (de)select each classifier in these figures in order to better compare a subset of certain classifiers of interest. The R code of the LESS classifier and the functions for the discussed variable scaling methods can also be found in this online repository.
